@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.profile.mapper.UserProfileMapper">
+    
+    <resultMap type="UserProfile" id="UserProfileResult">
+        <result property="userId"    column="user_id"    />
+        <result property="realName"    column="real_name"    />
+        <result property="idCard"    column="id_card"    />
+        <result property="phone"    column="phone"    />
+        <result property="gender"    column="gender"    />
+        <result property="birthDate"    column="birth_date"    />
+        <result property="roleType"    column="role_type"    />
+        <result property="avatar"    column="avatar"    />
+    </resultMap>
+
+    <sql id="selectUserProfileVo">
+        select user_id, real_name, id_card, phone, gender, birth_date, role_type, avatar from user_profile
+    </sql>
+
+    <select id="selectUserProfileList" parameterType="UserProfile" resultMap="UserProfileResult">
+        <include refid="selectUserProfileVo"/>
+        <where>  
+            <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
+            <if test="idCard != null  and idCard != ''"> and id_card = #{idCard}</if>
+            <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
+            <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
+            <if test="roleType != null "> and role_type = #{roleType}</if>
+        </where>
+    </select>
+    
+    <select id="selectUserProfileByUserId" parameterType="Long" resultMap="UserProfileResult">
+        <include refid="selectUserProfileVo"/>
+        where user_id = #{userId}
+    </select>
+
+    <insert id="insertUserProfile" parameterType="UserProfile">
+        insert into user_profile
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="realName != null and realName != ''">real_name,</if>
+            <if test="idCard != null">id_card,</if>
+            <if test="phone != null">phone,</if>
+            <if test="gender != null">gender,</if>
+            <if test="birthDate != null">birth_date,</if>
+            <if test="roleType != null">role_type,</if>
+            <if test="avatar != null">avatar,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="realName != null and realName != ''">#{realName},</if>
+            <if test="idCard != null">#{idCard},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="birthDate != null">#{birthDate},</if>
+            <if test="roleType != null">#{roleType},</if>
+            <if test="avatar != null">#{avatar},</if>
+         </trim>
+    </insert>
+
+    <update id="updateUserProfile" parameterType="UserProfile">
+        update user_profile
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="realName != null and realName != ''">real_name = #{realName},</if>
+            <if test="idCard != null">id_card = #{idCard},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthDate != null">birth_date = #{birthDate},</if>
+            <if test="roleType != null">role_type = #{roleType},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+        </trim>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteUserProfileByUserId" parameterType="Long">
+        delete from user_profile where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteUserProfileByUserIds" parameterType="String">
+        delete from user_profile where user_id in 
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>

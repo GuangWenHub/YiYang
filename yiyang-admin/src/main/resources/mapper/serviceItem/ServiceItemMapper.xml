@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.serviceItem.mapper.ServiceItemMapper">
+    
+    <resultMap type="ServiceItem" id="ServiceItemResult">
+        <result property="itemId"    column="item_id"    />
+        <result property="name"    column="name"    />
+        <result property="category"    column="category"    />
+        <result property="durationMinutes"    column="duration_minutes"    />
+        <result property="price"    column="price"    />
+        <result property="description"    column="description"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="isActive"    column="is_active"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectServiceItemVo">
+        select item_id, name, category, duration_minutes, price, description, image_url, is_active, create_by, create_time, update_by, update_time, del_flag from service_item
+    </sql>
+
+    <select id="selectServiceItemList" parameterType="ServiceItem" resultMap="ServiceItemResult">
+        <include refid="selectServiceItemVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="category != null  and category != ''"> and category = #{category}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="isActive != null "> and is_active = #{isActive}</if>
+        </where>
+    </select>
+    
+    <select id="selectServiceItemByItemId" parameterType="Long" resultMap="ServiceItemResult">
+        <include refid="selectServiceItemVo"/>
+        where item_id = #{itemId}
+    </select>
+
+    <insert id="insertServiceItem" parameterType="ServiceItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into service_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="category != null">category,</if>
+            <if test="durationMinutes != null">duration_minutes,</if>
+            <if test="price != null">price,</if>
+            <if test="description != null">description,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="isActive != null">is_active,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="category != null">#{category},</if>
+            <if test="durationMinutes != null">#{durationMinutes},</if>
+            <if test="price != null">#{price},</if>
+            <if test="description != null">#{description},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="isActive != null">#{isActive},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateServiceItem" parameterType="ServiceItem">
+        update service_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="durationMinutes != null">duration_minutes = #{durationMinutes},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+    <delete id="deleteServiceItemByItemId" parameterType="Long">
+        delete from service_item where item_id = #{itemId}
+    </delete>
+
+    <delete id="deleteServiceItemByItemIds" parameterType="String">
+        delete from service_item where item_id in 
+        <foreach item="itemId" collection="array" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+</mapper>

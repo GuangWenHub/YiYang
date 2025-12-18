@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.task.mapper.TaskMapper">
+    
+    <resultMap type="Task" id="TaskResult">
+        <result property="taskId"    column="task_id"    />
+        <result property="orderDetailId"    column="order_detail_id"    />
+        <result property="caregiverId"    column="caregiver_id"    />
+        <result property="scheduledTime"    column="scheduled_time"    />
+        <result property="actualTime"    column="actual_time"    />
+        <result property="status"    column="status"    />
+        <result property="completionNote"    column="completion_note"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectTaskVo">
+        select task_id, order_detail_id, caregiver_id, scheduled_time, actual_time, status, completion_note, create_by, create_time, update_by, update_time, del_flag from task
+    </sql>
+
+    <select id="selectTaskList" parameterType="Task" resultMap="TaskResult">
+        <include refid="selectTaskVo"/>
+        <where>  
+            <if test="orderDetailId != null "> and order_detail_id = #{orderDetailId}</if>
+            <if test="caregiverId != null "> and caregiver_id = #{caregiverId}</if>
+            <if test="scheduledTime != null "> and scheduled_time = #{scheduledTime}</if>
+            <if test="actualTime != null "> and actual_time = #{actualTime}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectTaskByTaskId" parameterType="Long" resultMap="TaskResult">
+        <include refid="selectTaskVo"/>
+        where task_id = #{taskId}
+    </select>
+
+    <insert id="insertTask" parameterType="Task" useGeneratedKeys="true" keyProperty="taskId">
+        insert into task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderDetailId != null">order_detail_id,</if>
+            <if test="caregiverId != null">caregiver_id,</if>
+            <if test="scheduledTime != null">scheduled_time,</if>
+            <if test="actualTime != null">actual_time,</if>
+            <if test="status != null">status,</if>
+            <if test="completionNote != null">completion_note,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderDetailId != null">#{orderDetailId},</if>
+            <if test="caregiverId != null">#{caregiverId},</if>
+            <if test="scheduledTime != null">#{scheduledTime},</if>
+            <if test="actualTime != null">#{actualTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="completionNote != null">#{completionNote},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTask" parameterType="Task">
+        update task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orderDetailId != null">order_detail_id = #{orderDetailId},</if>
+            <if test="caregiverId != null">caregiver_id = #{caregiverId},</if>
+            <if test="scheduledTime != null">scheduled_time = #{scheduledTime},</if>
+            <if test="actualTime != null">actual_time = #{actualTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="completionNote != null">completion_note = #{completionNote},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where task_id = #{taskId}
+    </update>
+
+    <delete id="deleteTaskByTaskId" parameterType="Long">
+        delete from task where task_id = #{taskId}
+    </delete>
+
+    <delete id="deleteTaskByTaskIds" parameterType="String">
+        delete from task where task_id in 
+        <foreach item="taskId" collection="array" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+    </delete>
+</mapper>

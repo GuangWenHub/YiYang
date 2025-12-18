@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.familyElderly.mapper.FamilyElderlyMapper">
+    
+    <resultMap type="FamilyElderly" id="FamilyElderlyResult">
+        <result property="id"    column="id"    />
+        <result property="familyUserId"    column="family_user_id"    />
+        <result property="elderlyId"    column="elderly_id"    />
+        <result property="relation"    column="relation"    />
+    </resultMap>
+
+    <sql id="selectFamilyElderlyVo">
+        select id, family_user_id, elderly_id, relation from family_elderly
+    </sql>
+
+    <select id="selectFamilyElderlyList" parameterType="FamilyElderly" resultMap="FamilyElderlyResult">
+        <include refid="selectFamilyElderlyVo"/>
+        <where>  
+            <if test="familyUserId != null "> and family_user_id = #{familyUserId}</if>
+            <if test="elderlyId != null "> and elderly_id = #{elderlyId}</if>
+            <if test="relation != null  and relation != ''"> and relation = #{relation}</if>
+        </where>
+    </select>
+    
+    <select id="selectFamilyElderlyById" parameterType="Long" resultMap="FamilyElderlyResult">
+        <include refid="selectFamilyElderlyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertFamilyElderly" parameterType="FamilyElderly" useGeneratedKeys="true" keyProperty="id">
+        insert into family_elderly
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="familyUserId != null">family_user_id,</if>
+            <if test="elderlyId != null">elderly_id,</if>
+            <if test="relation != null">relation,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="familyUserId != null">#{familyUserId},</if>
+            <if test="elderlyId != null">#{elderlyId},</if>
+            <if test="relation != null">#{relation},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFamilyElderly" parameterType="FamilyElderly">
+        update family_elderly
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="familyUserId != null">family_user_id = #{familyUserId},</if>
+            <if test="elderlyId != null">elderly_id = #{elderlyId},</if>
+            <if test="relation != null">relation = #{relation},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFamilyElderlyById" parameterType="Long">
+        delete from family_elderly where id = #{id}
+    </delete>
+
+    <delete id="deleteFamilyElderlyByIds" parameterType="String">
+        delete from family_elderly where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

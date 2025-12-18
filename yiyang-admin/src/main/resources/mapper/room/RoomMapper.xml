@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.room.mapper.RoomMapper">
+    
+    <resultMap type="Room" id="RoomResult">
+        <result property="roomId"    column="room_id"    />
+        <result property="roomNumber"    column="room_number"    />
+        <result property="floor"    column="floor"    />
+        <result property="capacity"    column="capacity"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <resultMap id="RoomBedResult" type="Room" extends="RoomResult">
+        <collection property="bedList" ofType="Bed" column="room_id" select="selectBedList" />
+    </resultMap>
+
+    <resultMap type="Bed" id="BedResult">
+        <result property="bedId"    column="bed_id"    />
+        <result property="roomId"    column="room_id"    />
+        <result property="bedNumber"    column="bed_number"    />
+        <result property="status"    column="status"    />
+        <result property="elderlyId"    column="elderly_id"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectRoomVo">
+        select room_id, room_number, floor, capacity, image_url, remark, create_by, create_time, update_by, update_time, del_flag from room
+    </sql>
+
+    <select id="selectRoomList" parameterType="Room" resultMap="RoomResult">
+        <include refid="selectRoomVo"/>
+        <where>  
+            <if test="roomNumber != null  and roomNumber != ''"> and room_number = #{roomNumber}</if>
+            <if test="floor != null "> and floor = #{floor}</if>
+        </where>
+    </select>
+    
+    <select id="selectRoomByRoomId" parameterType="Long" resultMap="RoomBedResult">
+        select room_id, room_number, floor, capacity, image_url, remark, create_by, create_time, update_by, update_time, del_flag
+        from room
+        where room_id = #{roomId}
+    </select>
+
+    <select id="selectBedList" resultMap="BedResult">
+        select bed_id, room_id, bed_number, status, elderly_id, remark, create_by, create_time, update_by, update_time, del_flag
+        from bed
+        where room_id = #{room_id}
+    </select>
+
+    <insert id="insertRoom" parameterType="Room" useGeneratedKeys="true" keyProperty="roomId">
+        insert into room
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="roomNumber != null and roomNumber != ''">room_number,</if>
+            <if test="floor != null">floor,</if>
+            <if test="capacity != null">capacity,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="roomNumber != null and roomNumber != ''">#{roomNumber},</if>
+            <if test="floor != null">#{floor},</if>
+            <if test="capacity != null">#{capacity},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateRoom" parameterType="Room">
+        update room
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="roomNumber != null and roomNumber != ''">room_number = #{roomNumber},</if>
+            <if test="floor != null">floor = #{floor},</if>
+            <if test="capacity != null">capacity = #{capacity},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where room_id = #{roomId}
+    </update>
+
+    <delete id="deleteRoomByRoomId" parameterType="Long">
+        delete from room where room_id = #{roomId}
+    </delete>
+
+    <delete id="deleteRoomByRoomIds" parameterType="String">
+        delete from room where room_id in 
+        <foreach item="roomId" collection="array" open="(" separator="," close=")">
+            #{roomId}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteBedByRoomIds" parameterType="String">
+        delete from bed where room_id in 
+        <foreach item="roomId" collection="array" open="(" separator="," close=")">
+            #{roomId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteBedByRoomId" parameterType="Long">
+        delete from bed where room_id = #{roomId}
+    </delete>
+
+    <insert id="batchBed">
+        insert into bed( bed_id, room_id, bed_number, status, elderly_id, remark, create_by, create_time, update_by, update_time, del_flag) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.bedId}, #{item.roomId}, #{item.bedNumber}, #{item.status}, #{item.elderlyId}, #{item.remark}, #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.delFlag})
+        </foreach>
+    </insert>
+</mapper>

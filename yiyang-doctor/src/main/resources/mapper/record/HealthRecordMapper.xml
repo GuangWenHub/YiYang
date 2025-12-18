@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.record.mapper.HealthRecordMapper">
+    
+    <resultMap type="HealthRecord" id="HealthRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="elderlyId"    column="elderly_id"    />
+        <result property="recorderId"    column="recorder_id"    />
+        <result property="recordTime"    column="record_time"    />
+        <result property="bloodPressure"    column="blood_pressure"    />
+        <result property="heartRate"    column="heart_rate"    />
+        <result property="temperature"    column="temperature"    />
+        <result property="weight"    column="weight"    />
+        <result property="bloodSugar"    column="blood_sugar"    />
+        <result property="symptomDesc"    column="symptom_desc"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectHealthRecordVo">
+        select record_id, elderly_id, recorder_id, record_time, blood_pressure, heart_rate, temperature, weight, blood_sugar, symptom_desc, remark, create_by, create_time, update_by, update_time, del_flag from health_record
+    </sql>
+
+    <select id="selectHealthRecordList" parameterType="HealthRecord" resultMap="HealthRecordResult">
+        <include refid="selectHealthRecordVo"/>
+        <where>  
+            <if test="elderlyId != null "> and elderly_id = #{elderlyId}</if>
+            <if test="recordTime != null "> and record_time = #{recordTime}</if>
+            <if test="symptomDesc != null  and symptomDesc != ''"> and symptom_desc = #{symptomDesc}</if>
+        </where>
+    </select>
+    
+    <select id="selectHealthRecordByRecordId" parameterType="Long" resultMap="HealthRecordResult">
+        <include refid="selectHealthRecordVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertHealthRecord" parameterType="HealthRecord" useGeneratedKeys="true" keyProperty="recordId">
+        insert into health_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="elderlyId != null">elderly_id,</if>
+            <if test="recorderId != null">recorder_id,</if>
+            <if test="recordTime != null">record_time,</if>
+            <if test="bloodPressure != null">blood_pressure,</if>
+            <if test="heartRate != null">heart_rate,</if>
+            <if test="temperature != null">temperature,</if>
+            <if test="weight != null">weight,</if>
+            <if test="bloodSugar != null">blood_sugar,</if>
+            <if test="symptomDesc != null">symptom_desc,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="elderlyId != null">#{elderlyId},</if>
+            <if test="recorderId != null">#{recorderId},</if>
+            <if test="recordTime != null">#{recordTime},</if>
+            <if test="bloodPressure != null">#{bloodPressure},</if>
+            <if test="heartRate != null">#{heartRate},</if>
+            <if test="temperature != null">#{temperature},</if>
+            <if test="weight != null">#{weight},</if>
+            <if test="bloodSugar != null">#{bloodSugar},</if>
+            <if test="symptomDesc != null">#{symptomDesc},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHealthRecord" parameterType="HealthRecord">
+        update health_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="elderlyId != null">elderly_id = #{elderlyId},</if>
+            <if test="recorderId != null">recorder_id = #{recorderId},</if>
+            <if test="recordTime != null">record_time = #{recordTime},</if>
+            <if test="bloodPressure != null">blood_pressure = #{bloodPressure},</if>
+            <if test="heartRate != null">heart_rate = #{heartRate},</if>
+            <if test="temperature != null">temperature = #{temperature},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="bloodSugar != null">blood_sugar = #{bloodSugar},</if>
+            <if test="symptomDesc != null">symptom_desc = #{symptomDesc},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <delete id="deleteHealthRecordByRecordId" parameterType="Long">
+        delete from health_record where record_id = #{recordId}
+    </delete>
+
+    <delete id="deleteHealthRecordByRecordIds" parameterType="String">
+        delete from health_record where record_id in 
+        <foreach item="recordId" collection="array" open="(" separator="," close=")">
+            #{recordId}
+        </foreach>
+    </delete>
+</mapper>
