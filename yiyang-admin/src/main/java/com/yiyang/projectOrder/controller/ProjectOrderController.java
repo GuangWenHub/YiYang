@@ -101,4 +101,19 @@ public class ProjectOrderController extends BaseController
     {
         return toAjax(projectOrderService.deleteProjectOrderByOrderIds(orderIds));
     }
+
+    /**
+     * 审核项目单
+     */
+    @PreAuthorize("@ss.hasPermi('projectOrder:projectOrder:audit')")
+    @Log(title = "项目单主", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody ProjectOrder projectOrder)
+    {
+        Long caregiverId = null;
+        if (projectOrder.getOrderDetails() != null && !projectOrder.getOrderDetails().isEmpty()) {
+            caregiverId = projectOrder.getOrderDetails().get(0).getCreatorId();
+        }
+        return toAjax(projectOrderService.auditProjectOrder(projectOrder, caregiverId));
+    }
 }

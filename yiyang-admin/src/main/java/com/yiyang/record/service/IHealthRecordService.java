@@ -1,15 +1,16 @@
-package com.yiyang.record.mapper;
+package com.yiyang.record.service;
 
-import java.util.List;
 import com.yiyang.record.domain.HealthRecord;
 
+import java.util.List;
+
 /**
- * 健康档案记录Mapper接口
+ * 健康档案记录Service接口
  * 
  * @author GuangWenLi
  * @date 2025-12-18
  */
-public interface HealthRecordMapper 
+public interface IHealthRecordService 
 {
     /**
      * 查询健康档案记录
@@ -44,18 +45,18 @@ public interface HealthRecordMapper
     public int updateHealthRecord(HealthRecord healthRecord);
 
     /**
-     * 删除健康档案记录
+     * 批量删除健康档案记录
+     * 
+     * @param recordIds 需要删除的健康档案记录主键集合
+     * @return 结果
+     */
+    public int deleteHealthRecordByRecordIds(Long[] recordIds);
+
+    /**
+     * 删除健康档案记录信息
      * 
      * @param recordId 健康档案记录主键
      * @return 结果
      */
     public int deleteHealthRecordByRecordId(Long recordId);
-
-    /**
-     * 批量删除健康档案记录
-     * 
-     * @param recordIds 需要删除的数据主键集合
-     * @return 结果
-     */
-    public int deleteHealthRecordByRecordIds(Long[] recordIds);
 }

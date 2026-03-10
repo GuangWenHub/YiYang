@@ -17,15 +17,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="联系电话" prop="phone">
-        <el-input
-          v-model="queryParams.phone"
-          placeholder="请输入联系电话"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="性别" prop="gender">
+          <el-form-item label="性别" prop="gender">
         <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
           <el-option
             v-for="dict in dict.type.sys_user_sex"
@@ -35,8 +27,8 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="用户角色类型：1-管理员,2-医生,3-护工,4-家属" prop="roleType">
-        <el-select v-model="queryParams.roleType" placeholder="请选择用户角色类型：1-管理员,2-医生,3-护工,4-家属" clearable>
+      <el-form-item label="用户角色" prop="roleType">
+        <el-select v-model="queryParams.roleType" placeholder="请选择用户角色类型" clearable>
           <el-option
             v-for="dict in dict.type.user_role_type"
             :key="dict.value"
@@ -107,7 +99,7 @@
           <dict-tag :options="dict.type.sys_user_sex" :value="scope.row.gender"/>
         </template>
       </el-table-column>
-      <el-table-column label="用户角色类型：1-管理员,2-医生,3-护工,4-家属" align="center" prop="roleType">
+      <el-table-column label="用户角色类型" align="center" prop="roleType">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.user_role_type" :value="scope.row.roleType"/>
         </template>
@@ -136,7 +128,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -166,7 +158,7 @@
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="用户角色类型：1-管理员,2-医生,3-护工,4-家属" prop="roleType">
+        <el-form-item label="用户角色类型" prop="roleType">
           <el-radio-group v-model="form.roleType">
             <el-radio
               v-for="dict in dict.type.user_role_type"

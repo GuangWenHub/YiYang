@@ -40,7 +40,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select room_id, room_number, floor, capacity, image_url, remark, create_by, create_time, update_by, update_time, del_flag from room
     </sql>
 
-    <select id="selectRoomList" parameterType="Room" resultMap="RoomResult">
+    <select id="selectRoomList" parameterType="Room" resultMap="RoomBedResult">
         <include refid="selectRoomVo"/>
         <where>  
             <if test="roomNumber != null  and roomNumber != ''"> and room_number = #{roomNumber}</if>

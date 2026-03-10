@@ -1,12 +1,17 @@
 package com.yiyang.projectOrder.service.impl;
 
+import java.util.Date;
 import java.util.List;
 import com.yiyang.common.utils.DateUtils;
+import com.yiyang.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.yiyang.projectOrder.mapper.ProjectOrderMapper;
 import com.yiyang.projectOrder.domain.ProjectOrder;
+import com.yiyang.projectOrder.domain.ProjectOrderDetail;
 import com.yiyang.projectOrder.service.IProjectOrderService;
+import com.yiyang.projectOrder.service.IProjectOrderDetailService;
 
 /**
  * 项目单主Service业务层处理
@@ -19,6 +24,9 @@ public class ProjectOrderServiceImpl implements IProjectOrderService
 {
     @Autowired
     private ProjectOrderMapper projectOrderMapper;
+
+    @Autowired
+    private IProjectOrderDetailService projectOrderDetailService;
 
     /**
      * 查询项目单主
@@ -92,5 +100,48 @@ public class ProjectOrderServiceImpl implements IProjectOrderService
     public int deleteProjectOrderByOrderId(Long orderId)
     {
         return projectOrderMapper.deleteProjectOrderByOrderId(orderId);
+    }
+
+    /**
+     * 审核项目单
+     * 
+     * @param projectOrder 项目单信息
+     * @param caregiverId 护工ID
+     * @return 结果
+     */
+    @Override
+    @Transactional
+    public int auditProjectOrder(ProjectOrder projectOrder, Long caregiverId)
+    {
+        Long orderId = projectOrder.getOrderId();
+        
+        projectOrder.setUpdateTime(DateUtils.getNowDate());
+        
+        if (projectOrder.getStatus() == 2) {
+            projectOrder.setApprovedTime(new Date());
+        }
+        
+        projectOrder.setAuditorId(SecurityUtils.getUserId());
+        
+        int result = projectOrderMapper.updateProjectOrder(projectOrder);
+        
+        if (caregiverId != null) {
+            List<ProjectOrderDetail> details = projectOrderDetailService.selectProjectOrderDetailListByOrderId(orderId);
+            
+            if (details != null && !details.isEmpty()) {
+                for (ProjectOrderDetail detail : details) {
+                    detail.setCreatorId(caregiverId);
+                    projectOrderDetailService.updateProjectOrderDetail(detail);
+                }
+            } else {
+                ProjectOrderDetail newDetail = new ProjectOrderDetail();
+                newDetail.setOrderId(orderId);
+                newDetail.setCreatorId(caregiverId);
+                newDetail.setStatus(0L);
+                projectOrderDetailService.insertProjectOrderDetail(newDetail);
+            }
+        }
+        
+        return result;
     }
 }

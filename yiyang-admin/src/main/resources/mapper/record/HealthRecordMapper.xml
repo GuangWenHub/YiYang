@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="HealthRecord" id="HealthRecordResult">
         <result property="recordId"    column="record_id"    />
         <result property="elderlyId"    column="elderly_id"    />
+        <result property="elderlyName"    column="elderly_name"    />
         <result property="recorderId"    column="recorder_id"    />
         <result property="recordTime"    column="record_time"    />
         <result property="bloodPressure"    column="blood_pressure"    />
@@ -24,7 +25,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectHealthRecordVo">
-        select record_id, elderly_id, recorder_id, record_time, blood_pressure, heart_rate, temperature, weight, blood_sugar, symptom_desc, remark, create_by, create_time, update_by, update_time, del_flag from health_record
+        select hr.record_id, hr.elderly_id, e.name as elderly_name, hr.recorder_id, hr.record_time, hr.blood_pressure, hr.heart_rate, hr.temperature, hr.weight, hr.blood_sugar, hr.symptom_desc, hr.remark, hr.create_by, hr.create_time, hr.update_by, hr.update_time, hr.del_flag 
+        from health_record hr
+        left join elderly e on hr.elderly_id = e.elderly_id
     </sql>
 
     <select id="selectHealthRecordList" parameterType="HealthRecord" resultMap="HealthRecordResult">

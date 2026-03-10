@@ -17,8 +17,8 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="性别：M/F" prop="gender">
-        <el-select v-model="queryParams.gender" placeholder="请选择性别：M/F" clearable>
+      <el-form-item label="性别" prop="gender">
+        <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
           <el-option
             v-for="dict in dict.type.sys_user_sex"
             :key="dict.value"
@@ -101,7 +101,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="老人ID" align="center" prop="elderlyId" />
       <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="性别：M/F" align="center" prop="gender">
+      <el-table-column label="性别" align="center" prop="gender">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.sys_user_sex" :value="scope.row.gender"/>
         </template>

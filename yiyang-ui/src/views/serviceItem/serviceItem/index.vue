@@ -22,7 +22,7 @@
       <el-form-item label="是否启用" prop="isActive">
         <el-select v-model="queryParams.isActive" placeholder="请选择是否启用" clearable>
           <el-option
-            v-for="dict in dict.type.order_status"
+            v-for="dict in dict.type.sever_status"
             :key="dict.value"
             :label="dict.label"
             :value="dict.value"
@@ -97,6 +97,11 @@
           <image-preview :src="scope.row.imageUrl" :width="50" :height="50"/>
         </template>
       </el-table-column>
+      <el-table-column label="是否启用" align="center" prop="isActive">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.sever_status" :value="scope.row.isActive"/>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -155,7 +160,7 @@
         <el-form-item label="是否启用" prop="isActive">
           <el-radio-group v-model="form.isActive">
             <el-radio
-              v-for="dict in dict.type.order_status"
+              v-for="dict in dict.type.sever_status"
               :key="dict.value"
               :label="parseInt(dict.value)"
             >{{dict.label}}</el-radio>
@@ -175,7 +180,7 @@ import { listServiceItem, getServiceItem, delServiceItem, addServiceItem, update
 
 export default {
   name: "ServiceItem",
-  dicts: ['order_status', 'service_category'],
+  dicts: ['order_status', 'service_category', 'sever_status'],
   data() {
     return {
       // 遮罩层

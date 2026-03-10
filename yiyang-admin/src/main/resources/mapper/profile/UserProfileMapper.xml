@@ -23,7 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectUserProfileVo"/>
         <where>  
             <if test="realName != null  and realName != ''"> and real_name like concat('%', #{realName}, '%')</if>
-            <if test="idCard != null  and idCard != ''"> and id_card = #{idCard}</if>
+            <if test="idCard != null  and idCard != ''"> and id_card like concat('%', #{idCard}, '%')</if>
             <if test="phone != null  and phone != ''"> and phone = #{phone}</if>
             <if test="gender != null  and gender != ''"> and gender = #{gender}</if>
             <if test="roleType != null "> and role_type = #{roleType}</if>

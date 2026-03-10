@@ -73,6 +73,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="健康记录ID" align="center" prop="recordId" />
       <el-table-column label="老人ID" align="center" prop="elderlyId" />
+      <el-table-column label="老人姓名" align="center" prop="elderlyName" />
       <el-table-column label="记录时间" align="center" prop="recordTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d}') }}</span>
@@ -116,7 +117,11 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="老人ID" prop="elderlyId">
-          <el-input v-model="form.elderlyId" placeholder="请输入老人ID" />
+          <el-input v-model="form.elderlyId" placeholder="请输入关联的老人ID" @input="handleElderlyIdInput" />
+          <div v-if="elderlyInfo" class="elderly-info">
+            <span>老人姓名：{{ elderlyInfo.name }}</span>
+            <span>性别：{{ elderlyInfo.sex === '0' ? '男' : elderlyInfo.sex === '1' ? '女' : '未知' }}</span>
+          </div>
         </el-form-item>
         <el-form-item label="血压" prop="bloodPressure">
           <el-input v-model="form.bloodPressure" placeholder="请输入血压" />
@@ -150,6 +155,7 @@
 
 <script>
 import { listRecord, getRecord, delRecord, addRecord, updateRecord } from "@/api/record/record"
+import { getElderly } from "@/api/elderly/elderly"
 
 export default {
   name: "Record",
@@ -183,6 +189,8 @@ export default {
       },
       // 表单参数
       form: {},
+      // 老人信息
+      elderlyInfo: null,
       // 表单校验
       rules: {
         elderlyId: [
@@ -229,6 +237,8 @@ export default {
         updateTime: null,
         delFlag: null
       }
+      // 重置老人信息
+      this.elderlyInfo = null
       this.resetForm("form")
     },
     /** 搜索按钮操作 */
@@ -247,6 +257,23 @@ export default {
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
+    /** 老人ID输入事件处理 */
+    handleElderlyIdInput() {
+      const elderlyId = this.form.elderlyId
+      if (elderlyId) {
+        getElderly(elderlyId).then(response => {
+          if (response.code === 200) {
+            this.elderlyInfo = response.data
+          } else {
+            this.elderlyInfo = null
+          }
+        }).catch(() => {
+          this.elderlyInfo = null
+        })
+      } else {
+        this.elderlyInfo = null
+      }
+    },
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
@@ -259,6 +286,14 @@ export default {
       const recordId = row.recordId || this.ids
       getRecord(recordId).then(response => {
         this.form = response.data
+        // 查询老人信息
+        if (this.form.elderlyId) {
+          getElderly(this.form.elderlyId).then(elderlyResponse => {
+            if (elderlyResponse.code === 200) {
+              this.elderlyInfo = elderlyResponse.data
+            }
+          })
+        }
         this.open = true
         this.title = "修改健康档案记录"
       })

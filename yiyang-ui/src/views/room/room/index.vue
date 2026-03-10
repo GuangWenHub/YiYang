@@ -75,7 +75,22 @@
       <el-table-column label="房间号" align="center" prop="roomNumber" />
       <el-table-column label="楼层" align="center" prop="floor" />
       <el-table-column label="床位容量" align="center" prop="capacity" />
-      <el-table-column label="房间图片路径" align="center" prop="imageUrl" />
+      <el-table-column label="床位状态" align="center">
+        <template slot-scope="scope">
+          <div v-if="scope.row.bedList && scope.row.bedList.length > 0">
+            <div v-for="(bed, index) in scope.row.bedList" :key="index" style="margin-bottom: 4px;">
+              {{ bed.bedNumber }}: <dict-tag :options="dict.type.bed_status" :value="bed.status"/>
+            </div>
+          </div>
+          <span v-else>无床位</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="房间图片" align="center" prop="imageUrl">
+        <template slot-scope="scope">
+          <image-preview :src="scope.row.avatar" :width="50" :height="50"/>
+        </template>
+      </el-table-column>
+
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
@@ -96,7 +111,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -118,7 +133,7 @@
           <el-input v-model="form.capacity" placeholder="请输入床位容量" />
         </el-form-item>
         <el-form-item label="房间图片路径" prop="imageUrl">
-          <el-input v-model="form.imageUrl" placeholder="请输入房间图片路径" />
+          <image-upload v-model="form.avatar"/>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" placeholder="请输入备注" />
@@ -140,9 +155,9 @@
               <el-input v-model="scope.row.bedNumber" placeholder="请输入床位编号" />
             </template>
           </el-table-column>
-          <el-table-column label="床位状态：0-空闲，1-占用，2-维修" prop="status" width="150">
+          <el-table-column label="床位状态" prop="status" width="150">
             <template slot-scope="scope">
-              <el-select v-model="scope.row.status" placeholder="请选择床位状态：0-空闲，1-占用，2-维修">
+              <el-select v-model="scope.row.status" placeholder="请选择床位状态">
                 <el-option
                   v-for="dict in dict.type.bed_status"
                   :key="dict.value"
@@ -356,6 +371,15 @@ export default {
       this.download('room/room/export', {
         ...this.queryParams
       }, `room_${new Date().getTime()}.xlsx`)
+    },
+    /** 获取床位状态标签 */
+    getBedStatusLabel(status) {
+      const bedStatusDict = this.dict.type.bed_status
+      if (bedStatusDict) {
+        const statusItem = bedStatusDict.find(item => item.value == status)
+        return statusItem ? statusItem.label : '未知状态'
+      }
+      return '未知状态'
     }
   }
 }

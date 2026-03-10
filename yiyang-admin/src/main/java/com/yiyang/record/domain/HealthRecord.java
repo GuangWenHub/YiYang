@@ -1,12 +1,13 @@
 package com.yiyang.record.domain;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.yiyang.common.annotation.Excel;
 import com.yiyang.common.core.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 健康档案记录对象 health_record
@@ -24,6 +25,10 @@ public class HealthRecord extends BaseEntity
     /** 老人ID */
     @Excel(name = "老人ID")
     private Long elderlyId;
+
+    /** 老人姓名 */
+    @Excel(name = "老人姓名")
+    private String elderlyName;
 
     /** 记录人用户ID */
     private Long recorderId;
@@ -77,6 +82,16 @@ public class HealthRecord extends BaseEntity
     public Long getElderlyId() 
     {
         return elderlyId;
+    }
+
+    public void setElderlyName(String elderlyName) 
+    {
+        this.elderlyName = elderlyName;
+    }
+
+    public String getElderlyName() 
+    {
+        return elderlyName;
     }
 
     public void setRecorderId(Long recorderId) 
@@ -174,6 +189,7 @@ public class HealthRecord extends BaseEntity
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("recordId", getRecordId())
             .append("elderlyId", getElderlyId())
+            .append("elderlyName", getElderlyName())
             .append("recorderId", getRecorderId())
             .append("recordTime", getRecordTime())
             .append("bloodPressure", getBloodPressure())

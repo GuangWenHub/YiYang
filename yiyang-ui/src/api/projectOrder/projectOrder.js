@@ -42,3 +42,12 @@ export function delProjectOrder(orderId) {
     method: 'delete'
   })
 }
+
+// 审核项目单
+export function auditProjectOrder(data) {
+  return request({
+    url: '/projectOrder/projectOrder/audit',
+    method: 'put',
+    data: data
+  })
+}

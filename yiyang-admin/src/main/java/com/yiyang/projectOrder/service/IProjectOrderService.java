@@ -58,4 +58,12 @@ public interface IProjectOrderService
      * @return 结果
      */
     public int deleteProjectOrderByOrderId(Long orderId);
+
+    /**
+     * 审核项目单
+     * 
+     * @param projectOrder 项目单信息
+     * @return 结果
+     */
+    public int auditProjectOrder(ProjectOrder projectOrder, Long caregiverId);
 }

@@ -30,6 +30,18 @@ public class FamilyElderly extends BaseEntity
     @Excel(name = "亲属关系")
     private String relation;
 
+    /** 家属用户账号 */
+    @Excel(name = "家属用户账号")
+    private String familyUserName;
+
+    /** 家属真实姓名 */
+    @Excel(name = "家属真实姓名")
+    private String familyRealName;
+
+    /** 老人姓名 */
+    @Excel(name = "老人姓名")
+    private String elderlyName;
+
     public void setId(Long id) 
     {
         this.id = id;
@@ -70,6 +82,36 @@ public class FamilyElderly extends BaseEntity
         return relation;
     }
 
+    public void setFamilyUserName(String familyUserName) 
+    {
+        this.familyUserName = familyUserName;
+    }
+
+    public String getFamilyUserName() 
+    {
+        return familyUserName;
+    }
+
+    public void setFamilyRealName(String familyRealName) 
+    {
+        this.familyRealName = familyRealName;
+    }
+
+    public String getFamilyRealName() 
+    {
+        return familyRealName;
+    }
+
+    public void setElderlyName(String elderlyName) 
+    {
+        this.elderlyName = elderlyName;
+    }
+
+    public String getElderlyName() 
+    {
+        return elderlyName;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -77,6 +119,9 @@ public class FamilyElderly extends BaseEntity
             .append("familyUserId", getFamilyUserId())
             .append("elderlyId", getElderlyId())
             .append("relation", getRelation())
+            .append("familyUserName", getFamilyUserName())
+            .append("familyRealName", getFamilyRealName())
+            .append("elderlyName", getElderlyName())
             .toString();
     }
 }

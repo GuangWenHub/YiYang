@@ -9,24 +9,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="familyUserId"    column="family_user_id"    />
         <result property="elderlyId"    column="elderly_id"    />
         <result property="relation"    column="relation"    />
+        <result property="familyUserName"    column="family_user_name"    />
+        <result property="familyRealName"    column="family_real_name"    />
+        <result property="elderlyName"    column="elderly_name"    />
     </resultMap>
 
     <sql id="selectFamilyElderlyVo">
-        select id, family_user_id, elderly_id, relation from family_elderly
+        select fe.id, fe.family_user_id, fe.elderly_id, fe.relation, 
+               su.user_name as family_user_name, up.real_name as family_real_name, 
+               e.name as elderly_name 
+        from family_elderly fe
+        left join sys_user su on fe.family_user_id = su.user_id
+        left join user_profile up on fe.family_user_id = up.user_id
+        left join elderly e on fe.elderly_id = e.elderly_id
     </sql>
 
     <select id="selectFamilyElderlyList" parameterType="FamilyElderly" resultMap="FamilyElderlyResult">
         <include refid="selectFamilyElderlyVo"/>
         <where>  
-            <if test="familyUserId != null "> and family_user_id = #{familyUserId}</if>
-            <if test="elderlyId != null "> and elderly_id = #{elderlyId}</if>
-            <if test="relation != null  and relation != ''"> and relation = #{relation}</if>
+            <if test="familyUserId != null "> and fe.family_user_id = #{familyUserId}</if>
+            <if test="elderlyId != null "> and fe.elderly_id = #{elderlyId}</if>
+            <if test="relation != null  and relation != ''"> and fe.relation = #{relation}</if>
         </where>
     </select>
     
     <select id="selectFamilyElderlyById" parameterType="Long" resultMap="FamilyElderlyResult">
         <include refid="selectFamilyElderlyVo"/>
-        where id = #{id}
+        where fe.id = #{id}
     </select>
 
     <insert id="insertFamilyElderly" parameterType="FamilyElderly" useGeneratedKeys="true" keyProperty="id">

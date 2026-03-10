@@ -1,6 +1,7 @@
 package com.yiyang.projectOrder.domain;
 
 import java.util.Date;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -23,6 +24,18 @@ public class ProjectOrder extends BaseEntity
     /** 关联的老人ID */
     @Excel(name = "关联的老人ID")
     private Long elderlyId;
+
+    /** 服务项目ID */
+    @Excel(name = "服务项目ID")
+    private Long itemId;
+
+    /** 服务项目名称 */
+    @Excel(name = "服务项目名称")
+    private String itemName;
+
+    /** 老人姓名 */
+    @Excel(name = "老人姓名")
+    private String elderlyName;
 
     /** 开单人用户ID */
     @Excel(name = "开单人用户ID")
@@ -54,6 +67,9 @@ public class ProjectOrder extends BaseEntity
     /** 删除标志：0-正常，1-删除 */
     private Long delFlag;
 
+    /** 项目单明细列表 */
+    private List<ProjectOrderDetail> orderDetails;
+
     public void setOrderId(Long orderId) 
     {
         this.orderId = orderId;
@@ -72,6 +88,36 @@ public class ProjectOrder extends BaseEntity
     public Long getElderlyId() 
     {
         return elderlyId;
+    }
+
+    public void setItemId(Long itemId) 
+    {
+        this.itemId = itemId;
+    }
+
+    public Long getItemId() 
+    {
+        return itemId;
+    }
+
+    public void setItemName(String itemName) 
+    {
+        this.itemName = itemName;
+    }
+
+    public String getItemName() 
+    {
+        return itemName;
+    }
+
+    public void setElderlyName(String elderlyName) 
+    {
+        this.elderlyName = elderlyName;
+    }
+
+    public String getElderlyName() 
+    {
+        return elderlyName;
     }
 
     public void setCreatorId(Long creatorId) 
@@ -154,11 +200,24 @@ public class ProjectOrder extends BaseEntity
         return delFlag;
     }
 
+    public void setOrderDetails(List<ProjectOrderDetail> orderDetails) 
+    {
+        this.orderDetails = orderDetails;
+    }
+
+    public List<ProjectOrderDetail> getOrderDetails() 
+    {
+        return orderDetails;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("orderId", getOrderId())
             .append("elderlyId", getElderlyId())
+            .append("elderlyName", getElderlyName())
+            .append("itemId", getItemId())
+            .append("itemName", getItemName())
             .append("creatorId", getCreatorId())
             .append("creatorRole", getCreatorRole())
             .append("auditorId", getAuditorId())
@@ -166,6 +225,7 @@ public class ProjectOrder extends BaseEntity
             .append("createdTime", getCreatedTime())
             .append("submittedTime", getSubmittedTime())
             .append("approvedTime", getApprovedTime())
+            .append("orderDetails", getOrderDetails())
             .append("remark", getRemark())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

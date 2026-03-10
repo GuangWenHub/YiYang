@@ -7,6 +7,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="ProjectOrder" id="ProjectOrderResult">
         <result property="orderId"    column="order_id"    />
         <result property="elderlyId"    column="elderly_id"    />
+        <result property="elderlyName"    column="elderly_name"    />
+        <result property="itemId"    column="item_id"    />
+        <result property="itemName"    column="item_name"    />
         <result property="creatorId"    column="creator_id"    />
         <result property="creatorRole"    column="creator_role"    />
         <result property="auditorId"    column="auditor_id"    />
@@ -20,10 +23,30 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
         <result property="delFlag"    column="del_flag"    />
+        <!-- 关联项目单明细 -->
+        <collection property="orderDetails" ofType="ProjectOrderDetail">
+            <result property="detailId"    column="detail_id"    />
+            <result property="orderId"    column="order_id"    />
+            <result property="creatorId"    column="detail_creator_id"    />
+            <result property="startDate"    column="start_date"    />
+            <result property="endDate"    column="end_date"    />
+            <result property="status"    column="detail_status"    />
+            <result property="remark"    column="detail_remark"    />
+            <result property="createBy"    column="detail_create_by"    />
+            <result property="createTime"    column="detail_create_time"    />
+            <result property="updateBy"    column="detail_update_by"    />
+            <result property="updateTime"    column="detail_update_time"    />
+            <result property="delFlag"    column="detail_del_flag"    />
+        </collection>
     </resultMap>
 
     <sql id="selectProjectOrderVo">
-        select order_id, elderly_id, creator_id, creator_role, auditor_id, status, created_time, submitted_time, approved_time, remark, create_by, create_time, update_by, update_time, del_flag from project_order
+        select po.order_id, po.elderly_id, e.name as elderly_name, po.item_id, si.name as item_name, po.creator_id, po.creator_role, po.auditor_id, po.status, po.created_time, po.submitted_time, po.approved_time, po.remark, po.create_by, po.create_time, po.update_by, po.update_time, po.del_flag,
+               pod.detail_id, pod.order_id as detail_order_id, pod.creator_id as detail_creator_id, pod.start_date, pod.end_date, pod.status as detail_status, pod.remark as detail_remark, pod.create_by as detail_create_by, pod.create_time as detail_create_time, pod.update_by as detail_update_by, pod.update_time as detail_update_time, pod.del_flag as detail_del_flag
+        from project_order po
+        left join elderly e on po.elderly_id = e.elderly_id
+        left join service_item si on po.item_id = si.item_id
+        left join project_order_detail pod on po.order_id = pod.order_id
     </sql>
 
     <select id="selectProjectOrderList" parameterType="ProjectOrder" resultMap="ProjectOrderResult">
@@ -38,13 +61,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <select id="selectProjectOrderByOrderId" parameterType="Long" resultMap="ProjectOrderResult">
         <include refid="selectProjectOrderVo"/>
-        where order_id = #{orderId}
+        where po.order_id = #{orderId}
     </select>
 
     <insert id="insertProjectOrder" parameterType="ProjectOrder" useGeneratedKeys="true" keyProperty="orderId">
         insert into project_order
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="elderlyId != null">elderly_id,</if>
+            <if test="itemId != null">item_id,</if>
             <if test="creatorId != null">creator_id,</if>
             <if test="creatorRole != null">creator_role,</if>
             <if test="auditorId != null">auditor_id,</if>
@@ -61,6 +85,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="elderlyId != null">#{elderlyId},</if>
+            <if test="itemId != null">#{itemId},</if>
             <if test="creatorId != null">#{creatorId},</if>
             <if test="creatorRole != null">#{creatorRole},</if>
             <if test="auditorId != null">#{auditorId},</if>
@@ -81,6 +106,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         update project_order
         <trim prefix="SET" suffixOverrides=",">
             <if test="elderlyId != null">elderly_id = #{elderlyId},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
             <if test="creatorId != null">creator_id = #{creatorId},</if>
             <if test="creatorRole != null">creator_role = #{creatorRole},</if>
             <if test="auditorId != null">auditor_id = #{auditorId},</if>

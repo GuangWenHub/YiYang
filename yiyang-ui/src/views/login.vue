@@ -90,7 +90,7 @@ export default {
         ],
         code: [{ required: true, trigger: "change", message: "请输入验证码" }]
       },
-      loading: true,
+      loading: false,
       // 验证码开关
       captchaEnabled: true,
       // 注册开关

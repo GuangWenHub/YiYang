@@ -218,12 +218,6 @@
                 <version>${yiyang.version}</version>
             </dependency>
 
-            <!-- 医生模块-->
-            <dependency>
-                <groupId>com.yiyang</groupId>
-                <artifactId>yiyang-doctor</artifactId>
-                <version>${yiyang.version}</version>
-            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -235,7 +229,6 @@
         <module>yiyang-quartz</module>
         <module>yiyang-generator</module>
         <module>yiyang-common</module>
-        <module>yiyang-doctor</module>
     </modules>
     <packaging>pom</packaging>
 

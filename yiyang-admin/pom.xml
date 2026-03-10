@@ -61,11 +61,6 @@
             <artifactId>yiyang-generator</artifactId>
         </dependency>
 
-        <!-- 医生模块-->
-        <dependency>
-            <groupId>com.yiyang</groupId>
-            <artifactId>yiyang-doctor</artifactId>
-        </dependency>
 
     </dependencies>
 
