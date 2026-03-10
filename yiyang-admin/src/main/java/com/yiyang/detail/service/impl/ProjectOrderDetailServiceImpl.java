@@ -1,20 +1,20 @@
-package com.yiyang.projectOrder.service.impl;
+package com.yiyang.detail.service.impl;
 
 import java.util.List;
 import com.yiyang.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.yiyang.projectOrder.mapper.ProjectOrderDetailMapper;
-import com.yiyang.projectOrder.domain.ProjectOrderDetail;
-import com.yiyang.projectOrder.service.IProjectOrderDetailService;
+import com.yiyang.detail.mapper.ProjectOrderDetailMapper;
+import com.yiyang.detail.domain.ProjectOrderDetail;
+import com.yiyang.detail.service.IProjectOrderDetailService;
 
 /**
  * 项目单明细Service业务层处理
  * 
- * @author GuangWenLi
- * @date 2025-12-18
+ * @author GuangWen
+ * @date 2026-03-10
  */
-@Service
+@Service("detailProjectOrderDetailServiceImpl")
 public class ProjectOrderDetailServiceImpl implements IProjectOrderDetailService 
 {
     @Autowired

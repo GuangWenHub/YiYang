@@ -117,7 +117,7 @@
           <span>{{ parseTime(scope.row.createdTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="开单备注" align="center" prop="remark" />
+      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -347,14 +347,23 @@ export default {
     },
     /** 获取护工列表 */
     getCaregiverList() {
+      // 只有管理员才能获取护工列表
+    if (!this.isAdmin) {
+        console.log('非管理员用户，跳过获取护工列表')
+      return
+      }
       listUser({ pageSize: 100 }).then(response => {
         console.log('用户列表数据:', response.rows)
-        // 过滤出角色为护工的用户（角色key为caregiver）
-        this.caregiverList = response.rows.filter(user => {
-          return user.roles && user.roles.some(role => role.roleKey === 'caregiver')
+        // 过滤出角色为护工的用户（角色 key 为 caregiver）
+      this.caregiverList = response.rows.filter(user => {
+        return user.roles && user.roles.some(role => role.roleKey === 'caregiver')
         })
+      }).catch(error => {
+        console.log('获取护工列表失败 (可能是权限不足):', error)
+        // 不显示错误提示，避免干扰非管理员用户
       })
     },
+
     /** 根据护工ID获取护工名字 */
     getCaregiverName(caregiverId) {
       if (!caregiverId) return '未分配'
@@ -506,7 +515,7 @@ export default {
           this.form.creatorRole = userRoleValue
         } else {
           // 如果没匹配到，可以给个默认值，或者提示
-          this.form.creatorRole = 2 // 默认给医生，或者保持 null 让用户(如果能改的话)选，但既然禁用了就必须给值
+          this.form.creatorRole = null// 默认给医生，或者保持 null 让用户(如果能改的话)选，但既然禁用了就必须给值
           this.$modal.msgWarning("未识别到具体角色类型，已默认设置为医生")
         }
 
@@ -619,7 +628,7 @@ export default {
       if (row.orderDetails && row.orderDetails.length > 0) {
         caregiverId = row.orderDetails[0].creatorId
       }
-      
+
       this.auditForm = {
         orderId: row.orderId,
         elderlyId: row.elderlyId,
@@ -636,24 +645,24 @@ export default {
     /** 提交审核 */
     submitAudit(status) {
       // 如果是通过，必须选择护工
-      if (status === 1 && !this.auditForm.caregiverId) {
+      if (status === 2 && !this.auditForm.caregiverId) {
         this.$modal.msgError("通过审核必须分配护工")
         return
       }
-      
+
       const auditData = {
         orderId: this.auditForm.orderId,
         status: status,
         remark: this.auditForm.remark,
         orderDetails: []
       }
-      
-      if (status === 1 && this.auditForm.caregiverId) {
+
+      if (status === 2 && this.auditForm.caregiverId) {
         auditData.orderDetails.push({
           creatorId: this.auditForm.caregiverId
         })
       }
-      
+
       auditProjectOrder(auditData).then(response => {
         this.$modal.msgSuccess("审核成功")
         this.auditOpen = false

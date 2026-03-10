@@ -17,8 +17,8 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="性别" prop="gender">
-        <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
+      <el-form-item label="性别" prop="sex">
+        <el-select v-model="queryParams.sex" placeholder="请选择性别" clearable>
           <el-option
             v-for="dict in dict.type.sys_user_sex"
             :key="dict.value"
@@ -101,9 +101,9 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="老人ID" align="center" prop="elderlyId" />
       <el-table-column label="姓名" align="center" prop="name" />
-      <el-table-column label="性别" align="center" prop="gender">
+      <el-table-column label="性别" align="center" prop="sex">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_user_sex" :value="scope.row.gender"/>
+          <dict-tag :options="dict.type.sys_user_sex" :value="scope.row.sex"/>
         </template>
       </el-table-column>
       <el-table-column label="联系电话" align="center" prop="phone" />
@@ -156,8 +156,8 @@
         <el-form-item label="身份证号" prop="idCard">
           <el-input v-model="form.idCard" placeholder="请输入身份证号" />
         </el-form-item>
-        <el-form-item label="性别：M/F" prop="gender">
-          <el-radio-group v-model="form.gender">
+        <el-form-item label="性别：" prop="sex">
+          <el-radio-group v-model="form.sex">
             <el-radio
               v-for="dict in dict.type.sys_user_sex"
               :key="dict.value"
@@ -238,7 +238,7 @@ export default {
         pageSize: 10,
         name: null,
         idCard: null,
-        gender: null,
+        sex: null,
         healthStatus: null,
         admissionDate: null,
         status: null,
@@ -280,7 +280,7 @@ export default {
         elderlyId: null,
         name: null,
         idCard: null,
-        gender: null,
+        sex: null,
         birthDate: null,
         phone: null,
         address: null,

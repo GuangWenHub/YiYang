@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.yiyang.common.annotation.Excel;
 import com.yiyang.common.core.domain.BaseEntity;
+import com.yiyang.detail.domain.ProjectOrderDetail;
 
 /**
  * 项目单主对象 project_order

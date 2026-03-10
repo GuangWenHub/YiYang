@@ -123,6 +123,10 @@
             <span>性别：{{ elderlyInfo.sex === '0' ? '男' : elderlyInfo.sex === '1' ? '女' : '未知' }}</span>
           </div>
         </el-form-item>
+        <el-form-item label="记录人ID" prop="recorderId">
+          <el-input v-model="form.recorderId" placeholder="系统将自动填充" disabled />
+        </el-form-item>
+
         <el-form-item label="血压" prop="bloodPressure">
           <el-input v-model="form.bloodPressure" placeholder="请输入血压" />
         </el-form-item>
@@ -143,6 +147,14 @@
         </el-form-item>
         <el-form-item label="其他备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+         <el-form-item label="记录时间" prop="recordTime">
+          <el-date-picker clearable
+            v-model="form.recordTime"
+            type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            placeholder="请选择记录时间">
+          </el-date-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -277,6 +289,24 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
+      // 自动填充当前用户ID
+      let userId = this.$store.getters.userId
+      if (!userId && this.$store.state.user) {
+        userId = this.$store.state.user.userId || this.$store.state.user.id
+      }
+      if (userId) {
+        this.form.recorderId = userId
+      }
+      // 自动填充当前时间
+      const currentDate = new Date()
+      const year = currentDate.getFullYear()
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+      const day = String(currentDate.getDate()).padStart(2, '0')
+      const hours = String(currentDate.getHours()).padStart(2, '0')
+      const minutes = String(currentDate.getMinutes()).padStart(2, '0')
+      const seconds = String(currentDate.getSeconds()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+      this.form.recordTime = formattedDate
       this.open = true
       this.title = "添加健康档案记录"
     },
@@ -286,6 +316,28 @@ export default {
       const recordId = row.recordId || this.ids
       getRecord(recordId).then(response => {
         this.form = response.data
+        // 确保记录人ID存在
+        if (!this.form.recorderId) {
+          let userId = this.$store.getters.userId
+          if (!userId && this.$store.state.user) {
+            userId = this.$store.state.user.userId || this.$store.state.user.id
+          }
+          if (userId) {
+            this.form.recorderId = userId
+          }
+        }
+        // 确保记录时间存在
+        if (!this.form.recordTime) {
+          const currentDate = new Date()
+          const year = currentDate.getFullYear()
+          const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+          const day = String(currentDate.getDate()).padStart(2, '0')
+          const hours = String(currentDate.getHours()).padStart(2, '0')
+          const minutes = String(currentDate.getMinutes()).padStart(2, '0')
+          const seconds = String(currentDate.getSeconds()).padStart(2, '0')
+          const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+          this.form.recordTime = formattedDate
+        }
         // 查询老人信息
         if (this.form.elderlyId) {
           getElderly(this.form.elderlyId).then(elderlyResponse => {

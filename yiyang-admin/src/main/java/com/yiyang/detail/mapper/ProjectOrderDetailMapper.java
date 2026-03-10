@@ -1,13 +1,13 @@
-package com.yiyang.projectOrder.mapper;
+package com.yiyang.detail.mapper;
 
 import java.util.List;
-import com.yiyang.projectOrder.domain.ProjectOrderDetail;
+import com.yiyang.detail.domain.ProjectOrderDetail;
 
 /**
  * 项目单明细Mapper接口
  * 
- * @author GuangWenLi
- * @date 2025-12-18
+ * @author GuangWen
+ * @date 2026-03-10
  */
 public interface ProjectOrderDetailMapper 
 {

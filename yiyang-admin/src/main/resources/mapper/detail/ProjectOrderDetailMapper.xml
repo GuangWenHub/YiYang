@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.detail.mapper.ProjectOrderDetailMapper">
+    
+    <resultMap type="ProjectOrderDetail" id="ProjectOrderDetailResult">
+        <result property="detailId"    column="detail_id"    />
+        <result property="orderId"    column="order_id"    />
+        <result property="creatorId"    column="creator_id"    />
+        <result property="startDate"    column="start_date"    />
+        <result property="endDate"    column="end_date"    />
+        <result property="remark"    column="remark"    />
+        <result property="status"    column="status"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectProjectOrderDetailVo">
+        select d.detail_id, d.order_id, d.creator_id, d.start_date, d.end_date, d.remark, d.status, d.image_url, d.create_by, d.create_time, d.update_by, d.update_time, d.del_flag
+        from project_order_detail d
+    </sql>
+
+    <select id="selectProjectOrderDetailList" parameterType="ProjectOrderDetail" resultMap="ProjectOrderDetailResult">
+        <include refid="selectProjectOrderDetailVo"/>
+        <where>  
+            <if test="orderId != null "> and order_id = #{orderId}</if>
+            <if test="creatorId != null "> and creator_id = #{creatorId}</if>
+            <if test="startDate != null "> and start_date = #{startDate}</if>
+            <if test="endDate != null "> and end_date = #{endDate}</if>
+            <if test="status != null "> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectProjectOrderDetailByDetailId" parameterType="Long" resultMap="ProjectOrderDetailResult">
+        <include refid="selectProjectOrderDetailVo"/>
+        where detail_id = #{detailId}
+    </select>
+
+    <insert id="insertProjectOrderDetail" parameterType="ProjectOrderDetail" useGeneratedKeys="true" keyProperty="detailId">
+        insert into project_order_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">order_id,</if>
+            <if test="creatorId != null">creator_id,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="remark != null">remark,</if>
+            <if test="status != null">status,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">#{orderId},</if>
+            <if test="creatorId != null">#{creatorId},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="status != null">#{status},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateProjectOrderDetail" parameterType="ProjectOrderDetail">
+        update project_order_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="orderId != null">order_id = #{orderId},</if>
+            <if test="creatorId != null">creator_id = #{creatorId},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where detail_id = #{detailId}
+    </update>
+
+    <delete id="deleteProjectOrderDetailByDetailId" parameterType="Long">
+        delete from project_order_detail where detail_id = #{detailId}
+    </delete>
+
+    <delete id="deleteProjectOrderDetailByDetailIds" parameterType="String">
+        delete from project_order_detail where detail_id in 
+        <foreach item="detailId" collection="array" open="(" separator="," close=")">
+            #{detailId}
+        </foreach>
+    </delete>
+    
+    <select id="selectProjectOrderDetailListByOrderId" parameterType="Long" resultMap="ProjectOrderDetailResult">
+        <include refid="selectProjectOrderDetailVo"/>
+        where order_id = #{orderId}
+    </select>
+    
+    <delete id="deleteProjectOrderDetailByOrderId" parameterType="Long">
+        delete from project_order_detail where order_id = #{orderId}
+    </delete>
+</mapper>

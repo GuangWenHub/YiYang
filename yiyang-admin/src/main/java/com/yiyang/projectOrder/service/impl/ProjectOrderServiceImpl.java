@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.yiyang.projectOrder.mapper.ProjectOrderMapper;
 import com.yiyang.projectOrder.domain.ProjectOrder;
-import com.yiyang.projectOrder.domain.ProjectOrderDetail;
+import com.yiyang.detail.domain.ProjectOrderDetail;
 import com.yiyang.projectOrder.service.IProjectOrderService;
-import com.yiyang.projectOrder.service.IProjectOrderDetailService;
+import com.yiyang.detail.service.IProjectOrderDetailService;
 
 /**
  * 项目单主Service业务层处理
@@ -85,8 +85,14 @@ public class ProjectOrderServiceImpl implements IProjectOrderService
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteProjectOrderByOrderIds(Long[] orderIds)
     {
+        for (Long orderId : orderIds) {
+            // 删除子表记录
+            projectOrderDetailService.deleteProjectOrderDetailByOrderId(orderId);
+        }
+        // 删除主表记录
         return projectOrderMapper.deleteProjectOrderByOrderIds(orderIds);
     }
 
@@ -97,8 +103,12 @@ public class ProjectOrderServiceImpl implements IProjectOrderService
      * @return 结果
      */
     @Override
+    @Transactional
     public int deleteProjectOrderByOrderId(Long orderId)
     {
+        // 删除子表记录
+        projectOrderDetailService.deleteProjectOrderDetailByOrderId(orderId);
+        // 删除主表记录
         return projectOrderMapper.deleteProjectOrderByOrderId(orderId);
     }
 

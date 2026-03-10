@@ -27,9 +27,9 @@ public class Elderly extends BaseEntity
     /** 身份证号 */
     private String idCard;
 
-    /** 性别：M/F */
-    @Excel(name = "性别：M/F")
-    private String gender;
+    /** 性别：0-男，1-女 */
+    @Excel(name = "性别：0-男，1-女")
+    private String sex;
 
     /** 出生日期 */
     private Date birthDate;
@@ -93,14 +93,14 @@ public class Elderly extends BaseEntity
         return idCard;
     }
 
-    public void setGender(String gender) 
+    public void setSex(String sex) 
     {
-        this.gender = gender;
+        this.sex = sex;
     }
 
-    public String getGender() 
+    public String getSex() 
     {
-        return gender;
+        return sex;
     }
 
     public void setBirthDate(Date birthDate) 
@@ -199,7 +199,7 @@ public class Elderly extends BaseEntity
             .append("elderlyId", getElderlyId())
             .append("name", getName())
             .append("idCard", getIdCard())
-            .append("gender", getGender())
+            .append("sex", getSex())
             .append("birthDate", getBirthDate())
             .append("phone", getPhone())
             .append("address", getAddress())
