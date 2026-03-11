@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.information.mapper.SysNursingHomeMapper">
+    
+    <resultMap type="SysNursingHome" id="SysNursingHomeResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="address"    column="address"    />
+        <result property="introduction"    column="introduction"    />
+        <result property="imageUrl"    column="image_url"    />
+        <result property="contactPhone"    column="contact_phone"    />
+        <result property="contactPerson"    column="contact_person"    />
+        <result property="establishDate"    column="establish_date"    />
+        <result property="scale"    column="scale"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSysNursingHomeVo">
+        select id, name, address, introduction, image_url, contact_phone, contact_person, establish_date, scale, create_by, create_time, update_by, update_time, remark from sys_nursing_home
+    </sql>
+
+    <select id="selectSysNursingHomeList" parameterType="SysNursingHome" resultMap="SysNursingHomeResult">
+        <include refid="selectSysNursingHomeVo"/>
+        <where>  
+        </where>
+    </select>
+    
+    <select id="selectSysNursingHomeById" parameterType="Long" resultMap="SysNursingHomeResult">
+        <include refid="selectSysNursingHomeVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSysNursingHome" parameterType="SysNursingHome" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_nursing_home
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="address != null">address,</if>
+            <if test="introduction != null">introduction,</if>
+            <if test="imageUrl != null">image_url,</if>
+            <if test="contactPhone != null">contact_phone,</if>
+            <if test="contactPerson != null">contact_person,</if>
+            <if test="establishDate != null">establish_date,</if>
+            <if test="scale != null">scale,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="address != null">#{address},</if>
+            <if test="introduction != null">#{introduction},</if>
+            <if test="imageUrl != null">#{imageUrl},</if>
+            <if test="contactPhone != null">#{contactPhone},</if>
+            <if test="contactPerson != null">#{contactPerson},</if>
+            <if test="establishDate != null">#{establishDate},</if>
+            <if test="scale != null">#{scale},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysNursingHome" parameterType="SysNursingHome">
+        update sys_nursing_home
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="imageUrl != null">image_url = #{imageUrl},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="contactPerson != null">contact_person = #{contactPerson},</if>
+            <if test="establishDate != null">establish_date = #{establishDate},</if>
+            <if test="scale != null">scale = #{scale},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSysNursingHomeById" parameterType="Long">
+        delete from sys_nursing_home where id = #{id}
+    </delete>
+
+    <delete id="deleteSysNursingHomeByIds" parameterType="String">
+        delete from sys_nursing_home where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

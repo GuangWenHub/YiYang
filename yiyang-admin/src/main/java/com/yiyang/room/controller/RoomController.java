@@ -101,4 +101,13 @@ public class RoomController extends BaseController
     {
         return toAjax(roomService.deleteRoomByRoomIds(roomIds));
     }
+    
+    /**
+     * 根据老人ID查询床位信息
+     */
+    @GetMapping("/bed/{elderlyId}")
+    public AjaxResult getBedByElderlyId(@PathVariable("elderlyId") Long elderlyId)
+    {
+        return success(roomService.selectBedByElderlyId(elderlyId));
+    }
 }

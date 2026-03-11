@@ -107,6 +107,18 @@ public class RoomServiceImpl implements IRoomService
         roomMapper.deleteBedByRoomId(roomId);
         return roomMapper.deleteRoomByRoomId(roomId);
     }
+    
+    /**
+     * 根据老人ID查询床位信息
+     * 
+     * @param elderlyId 老人ID
+     * @return 床位信息
+     */
+    @Override
+    public Bed selectBedByElderlyId(Long elderlyId)
+    {
+        return roomMapper.selectBedByElderlyId(elderlyId);
+    }
 
     /**
      * 新增床位信息信息

@@ -133,4 +133,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             ( #{item.bedId}, #{item.roomId}, #{item.bedNumber}, #{item.status}, #{item.elderlyId}, #{item.remark}, #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.delFlag})
         </foreach>
     </insert>
+    
+    <select id="selectBedByElderlyId" parameterType="Long" resultMap="BedResult">
+        select bed_id, room_id, bed_number, status, elderly_id, remark, create_by, create_time, update_by, update_time, del_flag
+        from bed
+        where elderly_id = #{elderlyId}
+    </select>
 </mapper>

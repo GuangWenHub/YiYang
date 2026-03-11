@@ -17,6 +17,14 @@ export function getRoom(roomId) {
   })
 }
 
+// 根据老人ID查询床位信息
+export function getBedByElderlyId(elderlyId) {
+  return request({
+    url: '/room/room/bed/' + elderlyId,
+    method: 'get'
+  })
+}
+
 // 新增房间信息
 export function addRoom(data) {
   return request({

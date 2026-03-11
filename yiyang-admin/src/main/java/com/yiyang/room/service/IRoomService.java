@@ -58,4 +58,12 @@ public interface IRoomService
      * @return 结果
      */
     public int deleteRoomByRoomId(Long roomId);
+    
+    /**
+     * 根据老人ID查询床位信息
+     * 
+     * @param elderlyId 老人ID
+     * @return 床位信息
+     */
+    public com.yiyang.room.domain.Bed selectBedByElderlyId(Long elderlyId);
 }

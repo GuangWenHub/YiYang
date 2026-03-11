@@ -373,7 +373,8 @@ export default {
     /** 获取服务项目列表 */
     getServiceItemList() {
       listServiceItem({ pageSize: 100 }).then(response => {
-        this.serviceItemList = response.rows
+        // 过滤掉已停用的服务项目（isActive为1表示启用）
+        this.serviceItemList = response.rows.filter(item => item.isActive === 1)
       })
     },
     /** 查询项目单主列表 */

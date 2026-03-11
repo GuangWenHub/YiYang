@@ -84,4 +84,12 @@ public interface RoomMapper
      * @return 结果
      */
     public int deleteBedByRoomId(Long roomId);
+    
+    /**
+     * 根据老人ID查询床位信息
+     * 
+     * @param elderlyId 老人ID
+     * @return 床位信息
+     */
+    public Bed selectBedByElderlyId(Long elderlyId);
 }

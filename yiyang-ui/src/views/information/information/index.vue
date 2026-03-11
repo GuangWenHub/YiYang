@@ -1,42 +1,6 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="真实姓名" prop="realName">
-        <el-input
-          v-model="queryParams.realName"
-          placeholder="请输入真实姓名"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="身份证号" prop="idCard">
-        <el-input
-          v-model="queryParams.idCard"
-          placeholder="请输入身份证号"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
-          <el-form-item label="性别" prop="gender">
-        <el-select v-model="queryParams.gender" placeholder="请选择性别" clearable>
-          <el-option
-            v-for="dict in dict.type.sys_user_sex"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="用户角色" prop="roleType">
-        <el-select v-model="queryParams.roleType" placeholder="请选择用户角色类型" clearable>
-          <el-option
-            v-for="dict in dict.type.user_role_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -51,7 +15,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-          v-hasPermi="['profile:profile:add']"
+          v-hasPermi="['information:information:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -62,7 +26,7 @@
           size="mini"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['profile:profile:edit']"
+          v-hasPermi="['information:information:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -73,7 +37,7 @@
           size="mini"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['profile:profile:remove']"
+          v-hasPermi="['information:information:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -83,30 +47,34 @@
           icon="el-icon-download"
           size="mini"
           @click="handleExport"
-          v-hasPermi="['profile:profile:export']"
+          v-hasPermi="['information:information:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="profileList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="informationList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="关联 sys_user 表的用户ID" align="center" prop="userId" />
-      <el-table-column label="真实姓名" align="center" prop="realName" />
-      <el-table-column label="联系电话" align="center" prop="phone" />
-      <el-table-column label="性别" align="center" prop="gender">
+      <el-table-column label="主键" align="center" prop="id" />
+      <el-table-column label="养老院名称" align="center" prop="name" />
+      <el-table-column label="地址" align="center" prop="address" />
+      <el-table-column label="介绍" align="center" prop="introduction" />
+      <el-table-column label="展示图片URL" align="center" prop="imageUrl" width="100">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.sys_user_sex" :value="scope.row.gender"/>
+          <image-preview :src="scope.row.imageUrl" :width="50" :height="50"/>
         </template>
       </el-table-column>
-      <el-table-column label="用户角色类型" align="center" prop="roleType">
+      <el-table-column label="联系电话" align="center" prop="contactPhone" />
+      <el-table-column label="联系人" align="center" prop="contactPerson" />
+      <el-table-column label="成立日期" align="center" prop="establishDate" width="180">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.user_role_type" :value="scope.row.roleType"/>
+          <span>{{ parseTime(scope.row.establishDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="头像路径" align="center" prop="avatar" width="100">
+      <el-table-column label="规模" align="center" prop="scale" />
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template slot-scope="scope">
-          <image-preview :src="scope.row.avatar" :width="50" :height="50"/>
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -116,19 +84,19 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['profile:profile:edit']"
+            v-hasPermi="['information:information:edit']"
           >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['profile:profile:remove']"
+            v-hasPermi="['information:information:remove']"
           >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-
+    
     <pagination
       v-show="total>0"
       :total="total"
@@ -137,38 +105,37 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改用户扩展信息对话框 -->
+    <!-- 添加或修改养老院基本信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="真实姓名" prop="realName">
-          <el-input v-model="form.realName" placeholder="请输入真实姓名" />
+        <el-form-item label="养老院名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入养老院名称" />
         </el-form-item>
-        <el-form-item label="身份证号" prop="idCard">
-          <el-input v-model="form.idCard" placeholder="请输入身份证号" />
+        <el-form-item label="地址" prop="address">
+          <el-input v-model="form.address" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="联系电话" prop="phone">
-          <el-input v-model="form.phone" placeholder="请输入联系电话" />
+        <el-form-item label="介绍" prop="introduction">
+          <el-input v-model="form.introduction" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="性别" prop="gender">
-          <el-radio-group v-model="form.gender">
-            <el-radio
-              v-for="dict in dict.type.sys_user_sex"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
+        <el-form-item label="展示图片URL" prop="imageUrl">
+          <image-upload v-model="form.imageUrl"/>
         </el-form-item>
-        <el-form-item label="用户角色类型" prop="roleType">
-          <el-radio-group v-model="form.roleType">
-            <el-radio
-              v-for="dict in dict.type.user_role_type"
-              :key="dict.value"
-              :label="parseInt(dict.value)"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="form.contactPhone" placeholder="请输入联系电话" />
         </el-form-item>
-        <el-form-item label="头像路径" prop="avatar">
-          <image-upload v-model="form.avatar"/>
+        <el-form-item label="联系人" prop="contactPerson">
+          <el-input v-model="form.contactPerson" placeholder="请输入联系人" />
+        </el-form-item>
+        <el-form-item label="成立日期" prop="establishDate">
+          <el-date-picker clearable
+            v-model="form.establishDate"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择成立日期">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="规模" prop="scale">
+          <el-input v-model="form.scale" placeholder="请输入规模" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -180,11 +147,10 @@
 </template>
 
 <script>
-import { listProfile, getProfile, delProfile, addProfile, updateProfile } from "@/api/profile/profile"
+import { listInformation, getInformation, delInformation, addInformation, updateInformation } from "@/api/information/information"
 
 export default {
-  name: "Profile",
-  dicts: ['sys_user_sex', 'user_role_type'],
+  name: "Information",
   data() {
     return {
       // 遮罩层
@@ -199,8 +165,8 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 用户扩展信息表格数据
-      profileList: [],
+      // 养老院基本信息表格数据
+      informationList: [],
       // 弹出层标题
       title: "",
       // 是否显示弹出层
@@ -209,22 +175,11 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        realName: null,
-        idCard: null,
-        phone: null,
-        gender: null,
-        roleType: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {
-        realName: [
-          { required: true, message: "真实姓名不能为空", trigger: "blur" }
-        ],
-        roleType: [
-          { required: true, message: "用户角色类型：1-管理员,2-医生,3-护工,4-家属不能为空", trigger: "change" }
-        ],
       }
     }
   },
@@ -232,11 +187,11 @@ export default {
     this.getList()
   },
   methods: {
-    /** 查询用户扩展信息列表 */
+    /** 查询养老院基本信息列表 */
     getList() {
       this.loading = true
-      listProfile(this.queryParams).then(response => {
-        this.profileList = response.rows
+      listInformation(this.queryParams).then(response => {
+        this.informationList = response.rows
         this.total = response.total
         this.loading = false
       })
@@ -249,14 +204,20 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        userId: null,
-        realName: null,
-        idCard: null,
-        phone: null,
-        gender: null,
-        birthDate: null,
-        roleType: null,
-        avatar: null
+        id: null,
+        name: null,
+        address: null,
+        introduction: null,
+        imageUrl: null,
+        contactPhone: null,
+        contactPerson: null,
+        establishDate: null,
+        scale: null,
+        createBy: null,
+        createTime: null,
+        updateBy: null,
+        updateTime: null,
+        remark: null
       }
       this.resetForm("form")
     },
@@ -272,7 +233,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.userId)
+      this.ids = selection.map(item => item.id)
       this.single = selection.length!==1
       this.multiple = !selection.length
     },
@@ -280,30 +241,30 @@ export default {
     handleAdd() {
       this.reset()
       this.open = true
-      this.title = "添加用户扩展信息"
+      this.title = "添加养老院基本信息"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const userId = row.userId || this.ids
-      getProfile(userId).then(response => {
+      const id = row.id || this.ids
+      getInformation(id).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改用户扩展信息"
+        this.title = "修改养老院基本信息"
       })
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          if (this.form.userId != null) {
-            updateProfile(this.form).then(response => {
+          if (this.form.id != null) {
+            updateInformation(this.form).then(response => {
               this.$modal.msgSuccess("修改成功")
               this.open = false
               this.getList()
             })
           } else {
-            addProfile(this.form).then(response => {
+            addInformation(this.form).then(response => {
               this.$modal.msgSuccess("新增成功")
               this.open = false
               this.getList()
@@ -314,9 +275,9 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const userIds = row.userId || this.ids
-      this.$modal.confirm('是否确认删除用户扩展信息编号为"' + userIds + '"的数据项？').then(function() {
-        return delProfile(userIds)
+      const ids = row.id || this.ids
+      this.$modal.confirm('是否确认删除养老院基本信息编号为"' + ids + '"的数据项？').then(function() {
+        return delInformation(ids)
       }).then(() => {
         this.getList()
         this.$modal.msgSuccess("删除成功")
@@ -324,9 +285,9 @@ export default {
     },
     /** 导出按钮操作 */
     handleExport() {
-      this.download('profile/profile/export', {
+      this.download('information/information/export', {
         ...this.queryParams
-      }, `profile_${new Date().getTime()}.xlsx`)
+      }, `information_${new Date().getTime()}.xlsx`)
     }
   }
 }

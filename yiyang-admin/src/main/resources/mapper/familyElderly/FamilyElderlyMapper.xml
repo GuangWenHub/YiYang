@@ -17,11 +17,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <sql id="selectFamilyElderlyVo">
         select fe.id, fe.family_user_id, fe.elderly_id, fe.relation, 
-               su.user_name as family_user_name, up.real_name as family_real_name, up.phone as family_phone, 
+               su.user_name as family_user_name, su.nick_name as family_real_name, su.phonenumber as family_phone, 
                e.name as elderly_name 
         from family_elderly fe
         left join sys_user su on fe.family_user_id = su.user_id
-        left join user_profile up on fe.family_user_id = up.user_id
         left join elderly e on fe.elderly_id = e.elderly_id
     </sql>
 
