@@ -79,10 +79,11 @@
 
     <el-table v-loading="loading" :data="familyElderlyList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="关系ID" align="center" prop="id" />
+      <el-table-column label="序号" align="center" prop="id" />
       <el-table-column label="家属用户ID" align="center" prop="familyUserId" />
       <el-table-column label="家属用户账号" align="center" prop="familyUserName" />
       <el-table-column label="家属真实姓名" align="center" prop="familyRealName" />
+      <el-table-column label="家属电话号码" align="center" prop="familyPhone" />
       <el-table-column label="老人ID" align="center" prop="elderlyId" />
       <el-table-column label="老人姓名" align="center" prop="elderlyName" />
       <el-table-column label="亲属关系" align="center" prop="relation" />

@@ -78,8 +78,15 @@
       <el-table-column label="床位状态" align="center">
         <template slot-scope="scope">
           <div v-if="scope.row.bedList && scope.row.bedList.length > 0">
-            <div v-for="(bed, index) in scope.row.bedList" :key="index" style="margin-bottom: 4px;">
-              {{ bed.bedNumber }}: <dict-tag :options="dict.type.bed_status" :value="bed.status"/>
+            <div v-for="(bed, index) in scope.row.bedList" :key="index" style="margin-bottom: 6px; padding: 4px 8px; background-color: #f5f7fa; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center;">
+                <span style="font-weight: 500; margin-right: 8px;">{{ bed.bedNumber }}:</span>
+                <dict-tag :options="dict.type.bed_status" :value="bed.status"/>
+              </div>
+              <div v-if="bed.elderlyId && elderlyMap[bed.elderlyId]" style="background-color: #ecf5ff; padding: 2px 8px; border-radius: 12px; font-size: 12px; color: #409EFF;">
+                {{ elderlyMap[bed.elderlyId].name }}
+              </div>
+              <div v-else style="font-size: 12px; color: #909399;">未分配</div>
             </div>
           </div>
           <span v-else>无床位</span>
@@ -169,7 +176,10 @@
           </el-table-column>
           <el-table-column label="当前分配的老人ID" prop="elderlyId" width="150">
             <template slot-scope="scope">
-              <el-input v-model="scope.row.elderlyId" placeholder="请输入当前分配的老人ID" />
+              <el-input v-model="scope.row.elderlyId" placeholder="请输入当前分配的老人ID" @input="handleElderlyIdInput(scope.row)" />
+              <div v-if="scope.row.elderlyId && elderlyMap[scope.row.elderlyId]" style="margin-top: 4px; padding: 2px 8px; background-color: #ecf5ff; border-radius: 12px; font-size: 12px; color: #409EFF; display: inline-block;">
+                {{ elderlyMap[scope.row.elderlyId].name }}
+              </div>
             </template>
           </el-table-column>
           <el-table-column label="备注" prop="remark" width="150">
@@ -189,6 +199,7 @@
 
 <script>
 import { listRoom, getRoom, delRoom, addRoom, updateRoom } from "@/api/room/room"
+import { getElderly } from "@/api/elderly/elderly"
 
 export default {
   name: "Room",
@@ -234,7 +245,9 @@ export default {
         capacity: [
           { required: true, message: "床位容量不能为空", trigger: "blur" }
         ],
-      }
+      },
+      // 老人信息映射
+      elderlyMap: {}
     }
   },
   created() {
@@ -247,8 +260,30 @@ export default {
       listRoom(this.queryParams).then(response => {
         this.roomList = response.rows
         this.total = response.total
+        // 为每个有老人ID的床位获取老人信息
+        this.roomList.forEach(room => {
+          if (room.bedList && room.bedList.length > 0) {
+            room.bedList.forEach(bed => {
+              if (bed.elderlyId) {
+                this.getElderlyInfo(bed.elderlyId)
+              }
+            })
+          }
+        })
         this.loading = false
       })
+    },
+    /** 获取老人信息 */
+    getElderlyInfo(elderlyId) {
+      if (elderlyId && !this.elderlyMap[elderlyId]) {
+        getElderly(elderlyId).then(response => {
+          if (response.code === 200) {
+            this.$set(this.elderlyMap, elderlyId, response.data)
+          }
+        }).catch(() => {
+          // 忽略错误
+        })
+      }
     },
     // 取消按钮
     cancel() {
@@ -302,6 +337,14 @@ export default {
       getRoom(roomId).then(response => {
         this.form = response.data
         this.bedList = response.data.bedList
+        // 为每个有老人ID的床位获取老人信息
+        if (response.data.bedList && response.data.bedList.length > 0) {
+          response.data.bedList.forEach(bed => {
+            if (bed.elderlyId) {
+              this.getElderlyInfo(bed.elderlyId)
+            }
+          })
+        }
         this.open = true
         this.title = "修改房间信息"
       })
@@ -371,6 +414,13 @@ export default {
       this.download('room/room/export', {
         ...this.queryParams
       }, `room_${new Date().getTime()}.xlsx`)
+    },
+    /** 老人ID输入事件处理 */
+    handleElderlyIdInput(bed) {
+      const elderlyId = bed.elderlyId
+      if (elderlyId) {
+        this.getElderlyInfo(elderlyId)
+      }
     },
     /** 获取床位状态标签 */
     getBedStatusLabel(status) {

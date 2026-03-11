@@ -38,6 +38,10 @@ public class FamilyElderly extends BaseEntity
     @Excel(name = "家属真实姓名")
     private String familyRealName;
 
+    /** 家属电话号码 */
+    @Excel(name = "家属电话号码")
+    private String familyPhone;
+
     /** 老人姓名 */
     @Excel(name = "老人姓名")
     private String elderlyName;
@@ -102,6 +106,16 @@ public class FamilyElderly extends BaseEntity
         return familyRealName;
     }
 
+    public void setFamilyPhone(String familyPhone) 
+    {
+        this.familyPhone = familyPhone;
+    }
+
+    public String getFamilyPhone() 
+    {
+        return familyPhone;
+    }
+
     public void setElderlyName(String elderlyName) 
     {
         this.elderlyName = elderlyName;
@@ -121,6 +135,7 @@ public class FamilyElderly extends BaseEntity
             .append("relation", getRelation())
             .append("familyUserName", getFamilyUserName())
             .append("familyRealName", getFamilyRealName())
+            .append("familyPhone", getFamilyPhone())
             .append("elderlyName", getElderlyName())
             .toString();
     }

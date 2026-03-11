@@ -82,6 +82,7 @@
       <el-table-column label="血压" align="center" prop="bloodPressure" />
       <el-table-column label="心率" align="center" prop="heartRate" />
       <el-table-column label="体温" align="center" prop="temperature" />
+      <el-table-column label="体重" align="center" prop="weight" />
       <el-table-column label="血糖" align="center" prop="bloodSugar" />
       <el-table-column label="症状描述" align="center" prop="symptomDesc" />
       <el-table-column label="其他备注" align="center" prop="remark" />
