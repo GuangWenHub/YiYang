@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.medicalOrder.mapper.MedicalOrderMapper">
+    
+    <resultMap type="MedicalOrder" id="MedicalOrderResult">
+        <result property="orderId"    column="order_id"    />
+        <result property="elderlyId"    column="elderly_id"    />
+        <result property="orderContent"    column="order_content"    />
+        <result property="medicationAdvice"    column="medication_advice"    />
+        <result property="doctorId"    column="doctor_id"    />
+        <result property="orderDate"    column="order_date"    />
+        <result property="medicationId"    column="medication_id"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <resultMap type="MedicalOrder" id="MedicalOrderWithMedicationResult" extends="MedicalOrderResult">
+        <collection property="medicationRecords" ofType="com.yiyang.medicationRecord.domain.MedicationRecord">
+            <result property="recordId"    column="record_id"    />
+            <result property="orderId"    column="m_order_id"    />
+            <result property="medicineId"    column="medicine_id"    />
+            <result property="scheduledTime"    column="scheduled_time"    />
+            <result property="actualTime"    column="actual_time"    />
+            <result property="nurseId"    column="nurse_id"    />
+            <result property="imageUrl"    column="image_url"    />
+            <result property="status"    column="m_status"    />
+            <result property="createBy"    column="m_create_by"    />
+            <result property="createTime"    column="m_create_time"    />
+            <result property="updateBy"    column="m_update_by"    />
+            <result property="updateTime"    column="m_update_time"    />
+            <result property="delFlag"    column="m_del_flag"    />
+        </collection>
+    </resultMap>
+
+    <sql id="selectMedicalOrderVo">
+        select order_id, elderly_id, order_content, medication_advice, doctor_id, order_date, medication_id, status, create_by, create_time, update_by, update_time, del_flag from medical_order
+    </sql>
+
+    <sql id="selectMedicalOrderWithMedicationVo">
+        select mo.order_id, mo.elderly_id, mo.order_content, mo.medication_advice, mo.doctor_id, mo.order_date, mo.medication_id, mo.status, mo.create_by, mo.create_time, mo.update_by, mo.update_time, mo.del_flag,
+               mr.record_id, mr.order_id as m_order_id, mr.medicine_id, mr.scheduled_time, mr.actual_time, mr.nurse_id, mr.image_url, mr.status as m_status, mr.create_by as m_create_by, mr.create_time as m_create_time, mr.update_by as m_update_by, mr.update_time as m_update_time, mr.del_flag as m_del_flag
+        from medical_order mo
+        left join medication_record mr on mo.order_id = mr.order_id
+    </sql>
+
+    <select id="selectMedicalOrderList" parameterType="MedicalOrder" resultMap="MedicalOrderWithMedicationResult">
+        <include refid="selectMedicalOrderWithMedicationVo"/>
+        <where>  
+            <if test="elderlyId != null "> and mo.elderly_id = #{elderlyId}</if>
+            <if test="doctorId != null "> and mo.doctor_id = #{doctorId}</if>
+        </where>
+    </select>
+    
+    <select id="selectMedicalOrderByOrderId" parameterType="Long" resultMap="MedicalOrderWithMedicationResult">
+        <include refid="selectMedicalOrderWithMedicationVo"/>
+        where mo.order_id = #{orderId}
+    </select>
+
+    <insert id="insertMedicalOrder" parameterType="MedicalOrder" useGeneratedKeys="true" keyProperty="orderId">
+        insert into medical_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="elderlyId != null">elderly_id,</if>
+            <if test="orderContent != null and orderContent != ''">order_content,</if>
+            <if test="medicationAdvice != null">medication_advice,</if>
+            <if test="doctorId != null">doctor_id,</if>
+            <if test="orderDate != null">order_date,</if>
+            <if test="medicationId != null">medication_id,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="elderlyId != null">#{elderlyId},</if>
+            <if test="orderContent != null and orderContent != ''">#{orderContent},</if>
+            <if test="medicationAdvice != null">#{medicationAdvice},</if>
+            <if test="doctorId != null">#{doctorId},</if>
+            <if test="orderDate != null">#{orderDate},</if>
+            <if test="medicationId != null">#{medicationId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateMedicalOrder" parameterType="MedicalOrder">
+        update medical_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="elderlyId != null">elderly_id = #{elderlyId},</if>
+            <if test="orderContent != null and orderContent != ''">order_content = #{orderContent},</if>
+            <if test="medicationAdvice != null">medication_advice = #{medicationAdvice},</if>
+            <if test="doctorId != null">doctor_id = #{doctorId},</if>
+            <if test="orderDate != null">order_date = #{orderDate},</if>
+            <if test="medicationId != null">medication_id = #{medicationId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where order_id = #{orderId}
+    </update>
+
+    <delete id="deleteMedicalOrderByOrderId" parameterType="Long">
+        delete from medical_order where order_id = #{orderId}
+    </delete>
+
+    <delete id="deleteMedicalOrderByOrderIds" parameterType="String">
+        delete from medical_order where order_id in 
+        <foreach item="orderId" collection="array" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+</mapper>
