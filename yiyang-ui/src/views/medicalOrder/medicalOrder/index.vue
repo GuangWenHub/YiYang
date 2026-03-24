@@ -76,6 +76,7 @@
             <el-table :data="getDisplayMedicationRecords(scope.row)" style="width: 100%">
               <el-table-column label="用药记录ID" align="center" prop="recordId" />
               <el-table-column label="药品ID" align="center" prop="medicineId" />
+              <el-table-column label="药品名称" align="center" prop="medicineName" />
               <el-table-column label="计划用药时间" align="center" prop="scheduledTime" width="180">
                 <template slot-scope="recordScope">
                   <span>{{ parseTime(recordScope.row.scheduledTime, '{y}-{m}-{d}') }}</span>
@@ -89,9 +90,9 @@
               <el-table-column label="护工ID" align="center" prop="nurseId" />
               <el-table-column label="任务状态" align="center" prop="status">
                 <template slot-scope="recordScope">
-                  <el-tag v-if="recordScope.row.status === '0'" type="info">待执行</el-tag>
-                  <el-tag v-else-if="recordScope.row.status === '1'" type="success">已完成</el-tag>
-                  <el-tag v-else-if="recordScope.row.status === '2'" type="danger">异常</el-tag>
+                  <el-tag :type="getTaskStatusType(recordScope.row.status)">
+                    {{ getTaskStatusLabel(recordScope.row.status) }}
+                  </el-tag>
                 </template>
               </el-table-column>
             </el-table>
@@ -190,7 +191,7 @@
               </el-table-column>
               <el-table-column label="药品ID" prop="medicineId" width="100">
                 <template slot-scope="scope">
-                  <el-input v-model="scope.row.medicineId" placeholder="药品ID" disabled />
+                  <el-input v-model="scope.row.medicineId" placeholder="药品ID" @input="(value) => handleMedicineIdInputForRow(value, scope.row)" />
                 </template>
               </el-table-column>
               <el-table-column label="计划用药时间" prop="scheduledTime">
@@ -203,9 +204,16 @@
                   </el-date-picker>
                 </template>
               </el-table-column>
-              <el-table-column label="分配护工ID" prop="nurseId">
+              <el-table-column label="分配护工" prop="nurseId">
                 <template slot-scope="scope">
-                  <el-input v-model="scope.row.nurseId" placeholder="请输入护工ID" />
+                  <el-select v-model="scope.row.nurseId" placeholder="请选择护工" clearable>
+                    <el-option
+                      v-for="user in caregiverList"
+                      :key="user.userId"
+                      :label="user.nickName"
+                      :value="user.userId"
+                    />
+                  </el-select>
                 </template>
               </el-table-column>
               <el-table-column label="操作">
@@ -231,8 +239,8 @@
       </div>
     </el-dialog>
     
-    <!-- 快速生成用药记录对话框 -->
-    <el-dialog :title="'快速生成用药记录'" :visible.sync="quickGenerateDialogVisible" width="600px" append-to-body>
+    <!-- 快速生成用药计划对话框 -->
+    <el-dialog :title="'快速生成用药计划'" :visible.sync="quickGenerateDialogVisible" width="600px" append-to-body>
       <el-form ref="quickGenerateForm" :model="quickGenerateForm" :rules="quickGenerateRules" label-width="120px">
         <el-form-item label="药品名称" prop="medicineName">
           <el-autocomplete
@@ -263,7 +271,7 @@
           <el-input v-model="quickGenerateForm.days" type="number" placeholder="请输入用药天数" />
         </el-form-item>
         <el-form-item label="每日用药次数" prop="timesPerDay">
-          <el-input v-model="quickGenerateForm.timesPerDay" type="number" placeholder="请输入每日用药次数" />
+          <el-input v-model="quickGenerateForm.timesPerDay" type="number" placeholder="请输入每日用药次数" @input="handleTimesPerDayChange" />
         </el-form-item>
         <el-form-item label="用药时间点">
           <div v-for="(item, index) in quickGenerateForm.times" :key="index" style="margin-bottom: 10px;">
@@ -278,12 +286,15 @@
           </div>
           <el-button type="primary" size="small" @click="addTime">添加时间点</el-button>
         </el-form-item>
-        <el-form-item label="分配护工ID" prop="nurseId">
-          <el-input v-model="quickGenerateForm.nurseId" placeholder="请输入护工ID" @input="handleNurseIdInput" />
-          <div v-if="nurseInfo" class="elderly-info">
-            <span>护工姓名：{{ nurseInfo.nickName }}</span>
-            <span>护工角色：{{ nurseInfo.roles && nurseInfo.roles.length > 0 ? nurseInfo.roles[0].roleName : '未知' }}</span>
-          </div>
+        <el-form-item label="分配护工" prop="nurseId">
+          <el-select v-model="quickGenerateForm.nurseId" placeholder="请选择护工" clearable>
+            <el-option
+              v-for="user in caregiverList"
+              :key="user.userId"
+              :label="user.nickName"
+              :value="user.userId"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -340,8 +351,8 @@ export default {
         medicineId: null,
         medicineName: null,
         startDate: null,
-        days: 1,
-        timesPerDay: 3,
+        days: "1",
+        timesPerDay: "3",
         times: [],
         nurseId: null
       },
@@ -359,19 +370,16 @@ export default {
       },
       // 快速生成表单校验
       quickGenerateRules: {
-        medicineName: [
-          { required: true, message: "药品名称不能为空", trigger: "blur" }
-        ],
         startDate: [
           { required: true, message: "开始日期不能为空", trigger: "blur" }
         ],
         days: [
           { required: true, message: "用药天数不能为空", trigger: "blur" },
-          { type: "number", min: 1, message: "用药天数至少为1", trigger: "blur" }
+          { type: "string", pattern: /^[1-9]\d*$/, message: "用药天数至少为1", trigger: "blur" }
         ],
         timesPerDay: [
           { required: true, message: "每日用药次数不能为空", trigger: "blur" },
-          { type: "number", min: 1, message: "每日用药次数至少为1", trigger: "blur" }
+          { type: "string", pattern: /^[1-9]\d*$/, message: "每日用药次数至少为1", trigger: "blur" }
         ],
         nurseId: [
           { required: true, message: "护工ID不能为空", trigger: "blur" }
@@ -384,12 +392,17 @@ export default {
       // 护工信息
       nurseInfo: null,
       // 护工列表
-      caregiverList: []
+      caregiverList: [],
+      // 任务状态字典
+      taskStatusOptions: []
     }
   },
   created() {
     this.getList()
     this.getCaregiverList()
+    this.getDicts('task_status').then(response => {
+      this.taskStatusOptions = response.data
+    })
   },
   methods: {
     /** 查询医嘱开立列表 */
@@ -466,6 +479,29 @@ export default {
         // 确保medicationRecords存在
         if (!this.form.medicationRecords) {
           this.form.medicationRecords = []
+        } else {
+          // 处理用药记录中的药品信息，确保药品名称和药品ID都有值
+          this.form.medicationRecords.forEach(record => {
+            if (record.medicineId && !record.medicineName) {
+              // 如果有药品ID但没有药品名称，查询药品信息
+              getMedicine(record.medicineId).then(medResponse => {
+                if (medResponse.code === 200) {
+                  record.medicineName = medResponse.data.medicineName
+                }
+              }).catch(() => {
+                // 查询失败，不做处理
+              })
+            } else if (record.medicineName && !record.medicineId) {
+              // 如果有药品名称但没有药品ID，查询药品信息
+              listMedicine({ medicineName: record.medicineName, pageSize: 1 }).then(medResponse => {
+                if (medResponse.code === 200 && medResponse.rows.length > 0) {
+                  record.medicineId = medResponse.rows[0].medicineId
+                }
+              }).catch(() => {
+                // 查询失败，不做处理
+              })
+            }
+          })
         }
         // 设置当前用户ID为医生ID
         let userId = this.$store.getters.userId
@@ -485,12 +521,13 @@ export default {
     },
     /** 显示快速生成用药记录对话框 */
     showQuickGenerateDialog() {
-      // 初始化时间点
-      this.quickGenerateForm.times = []
-      // 默认添加3个时间点：8:00, 12:00, 18:00
-      this.quickGenerateForm.times.push({ value: new Date(2000, 0, 1, 8, 0, 0) })
-      this.quickGenerateForm.times.push({ value: new Date(2000, 0, 1, 12, 0, 0) })
-      this.quickGenerateForm.times.push({ value: new Date(2000, 0, 1, 18, 0, 0) })
+      // 设置默认开始日期为当前日期
+      const currentDate = new Date().toISOString().slice(0, 10)
+      this.quickGenerateForm.startDate = currentDate
+      // 设置默认用药次数为3
+      this.quickGenerateForm.timesPerDay = "3"
+      // 触发时间点生成
+      this.handleTimesPerDayChange()
       this.quickGenerateDialogVisible = true
     },
     /** 添加时间点 */
@@ -505,14 +542,15 @@ export default {
     generateMedicationRecords() {
       this.$refs["quickGenerateForm"].validate(valid => {
         if (valid) {
-          const { medicineId, startDate, days, times, nurseId } = this.quickGenerateForm
+          const { medicineId, medicineName, startDate, days, times, nurseId } = this.quickGenerateForm
           const start = new Date(startDate)
+          const daysNum = parseInt(days, 10) // 将字符串转换为数字
           
           // 清空现有记录
           // this.form.medicationRecords = []
           
           // 生成用药记录
-          for (let i = 0; i < days; i++) {
+          for (let i = 0; i < daysNum; i++) {
             const currentDate = new Date(start)
             currentDate.setDate(start.getDate() + i)
             
@@ -524,6 +562,7 @@ export default {
                 
                 this.form.medicationRecords.push({
                   medicineId,
+                  medicineName,
                   scheduledTime: scheduledTime.toISOString().slice(0, 19).replace('T', ' '),
                   nurseId,
                   status: '0' // 待执行
@@ -678,6 +717,66 @@ export default {
       }).catch(() => {
         this.medicineInfo = null
       })
+    },
+    /** 处理用药记录表格中药品ID的输入 */
+    handleMedicineIdInputForRow(medicineId, row) {
+      if (medicineId) {
+        getMedicine(medicineId).then(response => {
+          if (response.code === 200) {
+            row.medicineName = response.data.medicineName
+          } else {
+            row.medicineName = ''
+          }
+        }).catch(() => {
+          row.medicineName = ''
+        })
+      } else {
+        row.medicineName = ''
+      }
+    },
+    /** 处理每日用药次数变化 */
+    handleTimesPerDayChange() {
+      const timesPerDay = parseInt(this.quickGenerateForm.timesPerDay, 10)
+      if (isNaN(timesPerDay) || timesPerDay < 1) {
+        return
+      }
+      
+      // 清空现有时间点
+      this.quickGenerateForm.times = []
+      
+      // 根据用药次数生成时间点
+      const timePoints = [
+        { hour: 8, minute: 0 },   // 8:00
+        { hour: 12, minute: 0 },  // 12:00
+        { hour: 18, minute: 0 },  // 18:00
+        { hour: 22, minute: 0 },  // 22:00
+        { hour: 4, minute: 0 }    // 4:00
+      ]
+      
+      for (let i = 0; i < timesPerDay; i++) {
+        const timePoint = timePoints[i % timePoints.length]
+        this.quickGenerateForm.times.push({ 
+          value: new Date(2000, 0, 1, timePoint.hour, timePoint.minute, 0) 
+        })
+      }
+    },
+    /** 获取任务状态标签 */
+    getTaskStatusLabel(status) {
+      const option = this.taskStatusOptions.find(item => item.dictValue === status)
+      return option ? option.dictLabel : status
+    },
+    /** 获取任务状态类型 */
+    getTaskStatusType(status) {
+      switch (status) {
+        case '0':
+          return 'info'
+        case '1':
+          return 'success'
+        case '2':
+          return 'danger'
+        default:
+          return ''
+      }
     }
   }
 }

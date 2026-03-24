@@ -38,8 +38,8 @@ public class MedicalOrder extends BaseEntity
     private Long doctorId;
 
     /** 医嘱日期 */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Excel(name = "医嘱日期", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Excel(name = "医嘱日期", width = 30, dateFormat = "yyyy-MM-dd")
     private Date orderDate;
 
     /** 用药表ID (建议业务层忽略此字段，关系由子表维护) */

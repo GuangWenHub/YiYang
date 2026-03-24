@@ -26,15 +26,15 @@
         />
       </el-form-item>
       <el-form-item label="任务状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择任务状态" clearable>
-          <el-option
-            v-for="dict in dict.type.order_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
+          <el-select v-model="queryParams.status" placeholder="请选择任务状态" clearable>
+            <el-option
+              v-for="dict in dict.type.task_status"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -61,7 +61,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['medicationRecord:medicationRecord:edit']"
-        >修改</el-button>
+        >去打卡</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -91,6 +91,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="用药记录ID" align="center" prop="recordId" />
       <el-table-column label="药品ID " align="center" prop="medicineId" />
+      <el-table-column label="药品名称" align="center" prop="medicineName" />
       <el-table-column label="计划用药时间" align="center" prop="scheduledTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.scheduledTime, '{y}-{m}-{d}') }}</span>
@@ -109,7 +110,7 @@
       </el-table-column>
       <el-table-column label="任务状态" align="center" prop="status">
         <template slot-scope="scope">
-          <dict-tag :options="dict.type.order_status" :value="scope.row.status"/>
+          <dict-tag :options="dict.type.task_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
@@ -121,7 +122,7 @@
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['medicationRecord:medicationRecord:edit']"
-          >修改</el-button>
+          >去打卡</el-button>
           <el-button
             size="mini"
             type="text"
@@ -141,9 +142,18 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改用药跟踪对话框 -->
+    <!-- 添加或去打卡用药跟踪对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="药品名称" prop="medicineName">
+          <el-input v-model="form.medicineName" placeholder="药品名称" disabled />
+        </el-form-item>
+        <el-form-item label="医嘱内容" prop="orderContent">
+          <el-input v-model="form.orderContent" type="textarea" placeholder="医嘱内容" disabled />
+        </el-form-item>
+        <el-form-item label="用药建议" prop="medicationAdvice">
+          <el-input v-model="form.medicationAdvice" type="textarea" placeholder="用药建议" disabled />
+        </el-form-item>
         <el-form-item label="实际用药时间" prop="actualTime">
           <el-date-picker clearable
             v-model="form.actualTime"
@@ -155,21 +165,13 @@
         <el-form-item label="打卡图片URL" prop="imageUrl">
           <image-upload v-model="form.imageUrl"/>
         </el-form-item>
-        <el-form-item label="任务状态" prop="status">
-          <el-radio-group v-model="form.status">
-            <el-radio
-              v-for="dict in dict.type.order_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button type="primary" @click="handleCompleteCheckIn">完成打卡</el-button>
+        <el-button type="danger" @click="handleExceptionReport">异常上报</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
@@ -181,7 +183,7 @@ import { listMedicationRecord, getMedicationRecord, delMedicationRecord, addMedi
 
 export default {
   name: "MedicationRecord",
-  dicts: ['order_status'],
+  dicts: ['task_status'],
   data() {
     return {
       // 遮罩层
@@ -245,6 +247,9 @@ export default {
         recordId: null,
         orderId: null,
         medicineId: null,
+        medicineName: null,
+        orderContent: null,
+        medicationAdvice: null,
         scheduledTime: null,
         actualTime: null,
         nurseId: null,
@@ -281,14 +286,14 @@ export default {
       this.open = true
       this.title = "添加用药跟踪"
     },
-    /** 修改按钮操作 */
+    /** 去打卡按钮操作 */
     handleUpdate(row) {
       this.reset()
       const recordId = row.recordId || this.ids
       getMedicationRecord(recordId).then(response => {
         this.form = response.data
         this.open = true
-        this.title = "修改用药跟踪"
+        this.title = "去打卡"
       })
     },
     /** 提交按钮 */
@@ -297,7 +302,7 @@ export default {
         if (valid) {
           if (this.form.recordId != null) {
             updateMedicationRecord(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功")
+              this.$modal.msgSuccess("去打卡成功")
               this.open = false
               this.getList()
             })
@@ -326,6 +331,34 @@ export default {
       this.download('medicationRecord/medicationRecord/export', {
         ...this.queryParams
       }, `medicationRecord_${new Date().getTime()}.xlsx`)
+    },
+    /** 完成打卡 */
+    handleCompleteCheckIn() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          this.form.status = '1' // 完成状态
+          this.form.actualTime = new Date().toISOString().slice(0, 19).replace('T', ' ')
+          updateMedicationRecord(this.form).then(response => {
+            this.$modal.msgSuccess("打卡成功")
+            this.open = false
+            this.getList()
+          })
+        }
+      })
+    },
+    /** 异常上报 */
+    handleExceptionReport() {
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          this.form.status = '2' // 异常状态
+          this.form.actualTime = new Date().toISOString().slice(0, 19).replace('T', ' ')
+          updateMedicationRecord(this.form).then(response => {
+            this.$modal.msgSuccess("异常上报成功")
+            this.open = false
+            this.getList()
+          })
+        }
+      })
     }
   }
 }

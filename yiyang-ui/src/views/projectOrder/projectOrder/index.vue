@@ -177,13 +177,13 @@
             <span>单价：{{ serviceItemInfo.price }}</span>
           </div>
         </el-form-item>
-        <el-form-item label="开单人用户ID" prop="creatorId">
+        <!-- <el-form-item label="开单人用户ID" prop="creatorId">
           <el-input
             v-model="form.creatorId"
             placeholder="系统将自动填充"
             disabled
           />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="开单人角色" prop="creatorRole">
           <el-radio-group v-model="form.creatorRole" disabled>
             <el-radio
@@ -486,8 +486,6 @@ export default {
       // 若依标准 getters: roles, 或者 state.user.roles
       const roles = this.$store.getters.roles || (this.$store.state.user && this.$store.state.user.roles) || []
 
-      console.log('当前用户角色列表:', roles) // 调试用：请在控制台查看这里打印的是什么
-
       // 根据实际项目中的角色标识进行映射
       // 假设：包含 'admin' 或 'administrator' 映射为 1，包含 'doctor' 或 'common' 映射为 2
       if (roles && roles.length > 0) {
@@ -499,10 +497,8 @@ export default {
         else if (roles.some(r => r === 'doctor' || r === 'common' || r === '普通用户')) {
           userRoleValue = 2
         }
-        // 策略 C: 如果只有一个角色且不知道是什么，暂时默认取第一个逻辑对应的值，或者根据需求调整
+        // 策略 C: 如果只有一个角色且不知道是什么，暂时默认普通用户
         else {
-           // 如果系统只有两种角色，且不是管理员，则默认为医生
-           // 请根据你控制台打印的 roles 内容调整上面的判断条件
            userRoleValue = 2
         }
       }

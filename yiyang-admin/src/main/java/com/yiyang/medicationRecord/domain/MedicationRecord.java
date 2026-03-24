@@ -27,14 +27,26 @@ public class MedicationRecord extends BaseEntity
     @Excel(name = "药品ID ")
     private Long medicineId;
 
+    /** 药品名称 */
+    @Excel(name = "药品名称")
+    private String medicineName;
+
+    /** 医嘱内容 */
+    @Excel(name = "医嘱内容")
+    private String orderContent;
+
+    /** 用药建议 */
+    @Excel(name = "用药建议")
+    private String medicationAdvice;
+
     /** 计划用药时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "计划用药时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "计划用药时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date scheduledTime;
 
     /** 实际用药时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "实际用药时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "实际用药时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date actualTime;
 
     /** 分配护工ID */
@@ -80,6 +92,36 @@ public class MedicationRecord extends BaseEntity
     public Long getMedicineId() 
     {
         return medicineId;
+    }
+
+    public void setMedicineName(String medicineName) 
+    {
+        this.medicineName = medicineName;
+    }
+
+    public String getMedicineName() 
+    {
+        return medicineName;
+    }
+
+    public void setOrderContent(String orderContent) 
+    {
+        this.orderContent = orderContent;
+    }
+
+    public String getOrderContent() 
+    {
+        return orderContent;
+    }
+
+    public void setMedicationAdvice(String medicationAdvice) 
+    {
+        this.medicationAdvice = medicationAdvice;
+    }
+
+    public String getMedicationAdvice() 
+    {
+        return medicationAdvice;
     }
 
     public void setScheduledTime(Date scheduledTime) 
@@ -148,12 +190,15 @@ public class MedicationRecord extends BaseEntity
             .append("recordId", getRecordId())
             .append("orderId", getOrderId())
             .append("medicineId", getMedicineId())
+            .append("medicineName", getMedicineName())
             .append("scheduledTime", getScheduledTime())
             .append("actualTime", getActualTime())
             .append("nurseId", getNurseId())
             .append("imageUrl", getImageUrl())
             .append("status", getStatus())
             .append("remark", getRemark())
+            .append("orderContent", getOrderContent())
+            .append("medicationAdvice", getMedicationAdvice())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())
             .append("updateBy", getUpdateBy())
