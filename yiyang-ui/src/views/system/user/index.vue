@@ -63,6 +63,12 @@
               <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns.userName.visible" :show-overflow-tooltip="true" />
               <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns.nickName.visible" :show-overflow-tooltip="true" />
               <el-table-column label="部门" align="center" key="deptName" prop="dept.deptName" v-if="columns.deptName.visible" :show-overflow-tooltip="true" />
+              <el-table-column label="角色" align="center" key="roleName" v-if="columns.roleName.visible" :show-overflow-tooltip="true">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.roles && scope.row.roles.length > 0">{{ scope.row.roles.map(item => item.roleName).join(',') }}</span>
+                  <span v-else>无</span>
+                </template>
+              </el-table-column>
               <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns.phonenumber.visible" width="120" />
               <el-table-column label="状态" align="center" key="status" v-if="columns.status.visible">
                 <template slot-scope="scope">
@@ -284,6 +290,7 @@ export default {
         userName: { label: '用户名称', visible: true },
         nickName: { label: '用户昵称', visible: true },
         deptName: { label: '部门', visible: true },
+        roleName: { label: '角色', visible: true },
         phonenumber: { label: '手机号码', visible: true },
         status: { label: '状态', visible: true },
         createTime: { label: '创建时间', visible: true }

@@ -2,6 +2,7 @@ package com.yiyang.web.controller.system;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.yiyang.common.annotation.Log;
 import com.yiyang.common.core.controller.BaseController;
 import com.yiyang.common.core.domain.AjaxResult;
@@ -53,6 +55,10 @@ public class SysUserController extends BaseController
     @Autowired
     private ISysPostService postService;
 
+    @Autowired
+    private HttpServletRequest request;
+
+
     /**
      * 获取用户列表
      */
@@ -61,9 +67,19 @@ public class SysUserController extends BaseController
     public TableDataInfo list(SysUser user)
     {
         startPage();
-        List<SysUser> list = userService.selectUserList(user);
+        List<SysUser> list;
+        // 检查请求参数中是否包含 all 参数
+        String all = request.getParameter("all");
+        if ("true".equals(all)) {
+            // 忽略数据权限控制，获取所有用户
+            list = userService.selectAllUserList(user);
+        } else {
+            // 应用数据权限控制
+            list = userService.selectUserList(user);
+        }
         return getDataTable(list);
     }
+
 
     @Log(title = "用户管理", businessType = BusinessType.EXPORT)
     @PreAuthorize("@ss.hasPermi('system:user:export')")

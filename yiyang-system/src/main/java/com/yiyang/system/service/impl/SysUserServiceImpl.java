@@ -80,6 +80,19 @@ public class SysUserServiceImpl implements ISysUserService
     }
 
     /**
+     * 查询所有用户列表（忽略数据权限控制）
+     * 
+     * @param user 用户信息
+     * @return 用户信息集合信息
+     */
+    @Override
+    public List<SysUser> selectAllUserList(SysUser user)
+    {
+        return userMapper.selectUserList(user);
+    }
+
+
+    /**
      * 根据条件分页查询已分配用户角色列表
      * 
      * @param user 用户信息

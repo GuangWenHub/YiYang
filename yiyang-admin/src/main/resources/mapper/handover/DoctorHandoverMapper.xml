@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.handover.mapper.DoctorHandoverMapper">
+    
+    <resultMap type="DoctorHandover" id="DoctorHandoverResult">
+        <result property="handoverId"    column="handover_id"    />
+        <result property="currentDoctorId"    column="current_doctor_id"    />
+        <result property="nextDoctorId"    column="next_doctor_id"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="status"    column="status"    />
+        <result property="overview"    column="overview"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectDoctorHandoverVo">
+        select handover_id, current_doctor_id, next_doctor_id, start_time, end_time, status, overview, create_by, create_time, update_by, update_time, del_flag from doctor_handover
+    </sql>
+
+    <select id="selectDoctorHandoverList" parameterType="DoctorHandover" resultMap="DoctorHandoverResult">
+        <include refid="selectDoctorHandoverVo"/>
+        <where>  
+            <if test="currentDoctorId != null "> and current_doctor_id = #{currentDoctorId}</if>
+            <if test="nextDoctorId != null "> and next_doctor_id = #{nextDoctorId}</if>
+            <if test="startTime != null "> and start_time = #{startTime}</if>
+            <if test="endTime != null "> and end_time = #{endTime}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectDoctorHandoverByHandoverId" parameterType="Long" resultMap="DoctorHandoverResult">
+        <include refid="selectDoctorHandoverVo"/>
+        where handover_id = #{handoverId}
+    </select>
+
+    <insert id="insertDoctorHandover" parameterType="DoctorHandover" useGeneratedKeys="true" keyProperty="handoverId">
+        insert into doctor_handover
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="currentDoctorId != null">current_doctor_id,</if>
+            <if test="nextDoctorId != null">next_doctor_id,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="status != null">status,</if>
+            <if test="overview != null">overview,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="currentDoctorId != null">#{currentDoctorId},</if>
+            <if test="nextDoctorId != null">#{nextDoctorId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="overview != null">#{overview},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateDoctorHandover" parameterType="DoctorHandover">
+        update doctor_handover
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="currentDoctorId != null">current_doctor_id = #{currentDoctorId},</if>
+            <if test="nextDoctorId != null">next_doctor_id = #{nextDoctorId},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="overview != null">overview = #{overview},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where handover_id = #{handoverId}
+    </update>
+
+    <delete id="deleteDoctorHandoverByHandoverId" parameterType="Long">
+        delete from doctor_handover where handover_id = #{handoverId}
+    </delete>
+
+    <delete id="deleteDoctorHandoverByHandoverIds" parameterType="String">
+        delete from doctor_handover where handover_id in 
+        <foreach item="handoverId" collection="array" open="(" separator="," close=")">
+            #{handoverId}
+        </foreach>
+    </delete>
+</mapper>
