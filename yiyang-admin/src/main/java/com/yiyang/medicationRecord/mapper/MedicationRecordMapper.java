@@ -66,4 +66,12 @@ public interface MedicationRecordMapper
      * @return 结果
      */
     public int deleteMedicationRecordByOrderId(Long orderId);
+    
+    /**
+     * 根据医嘱ID查询用药跟踪
+     * 
+     * @param orderId 医嘱ID
+     * @return 用药跟踪集合
+     */
+    public List<MedicationRecord> selectMedicationRecordByOrderId(Long orderId);
 }

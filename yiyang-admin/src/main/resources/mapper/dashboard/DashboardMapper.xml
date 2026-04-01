@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.dashboard.mapper.DashboardMapper">
+
+    <!-- 获取老人总数 -->
+    <select id="selectElderlyCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM elderly WHERE del_flag = 0 AND status = 1
+    </select>
+
+    <!-- 获取今日新增老人数 -->
+    <select id="selectTodayElderlyCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM elderly
+        WHERE del_flag = 0
+        AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{today}
+    </select>
+
+    <!-- 获取待执行护理任务数 -->
+    <select id="selectPendingCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '0'
+        <if test="isCaregiver">
+            AND creator_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取今日已完成护理任务数 -->
+    <select id="selectCompletedCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '1'
+        AND DATE_FORMAT(update_time, '%Y-%m-%d') = #{today}
+        <if test="isCaregiver">
+            AND creator_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取待执行用药任务数 -->
+    <select id="selectPendingMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '0'
+        <if test="isCaregiver">
+            AND nurse_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取今日已完成用药任务数 -->
+    <select id="selectCompletedMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '1'
+        AND DATE_FORMAT(update_time, '%Y-%m-%d') = #{today}
+        <if test="isCaregiver">
+            AND nurse_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取待审核项目单数 -->
+    <select id="selectPendingProjectOrderCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM project_order
+        WHERE del_flag = 0
+        AND status = 1
+    </select>
+
+    <!-- 获取待交班记录数 -->
+    <select id="selectPendingHandoverCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM doctor_handover
+        WHERE del_flag = '0'
+        AND status = '0'
+        AND next_doctor_id = #{userId}
+    </select>
+
+    <!-- 获取异常健康记录数 -->
+    <select id="selectAbnormalHealthCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM health_record
+        WHERE del_flag = 0
+        AND (
+            heart_rate &gt; 100 OR heart_rate &lt; 60
+            OR temperature &gt; 37.5 OR temperature &lt; 35.5
+            OR blood_sugar &gt; 11.1 OR blood_sugar &lt; 3.9
+        )
+    </select>
+
+    <!-- 获取今日新增留言数 -->
+    <select id="selectTodayFeedbackCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM sys_feedback
+        WHERE DATE_FORMAT(create_time, '%Y-%m-%d') = #{today}
+    </select>
+
+    <!-- 获取未读留言数 -->
+    <select id="selectUnreadFeedbackCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM sys_feedback
+        WHERE status = '0'
+        AND (receiver_id = #{userId} OR receiver_id IS NULL)
+    </select>
+
+    <!-- 获取总床位数 -->
+    <select id="selectTotalBedCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM bed WHERE del_flag = 0
+    </select>
+
+    <!-- 获取空闲床位数 -->
+    <select id="selectFreeBedCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM bed WHERE del_flag = 0 AND status = 0
+    </select>
+
+</mapper>

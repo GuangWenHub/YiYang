@@ -59,7 +59,7 @@
       <el-table-column label="养老院名称" align="center" prop="name" />
       <el-table-column label="地址" align="center" prop="address" />
       <el-table-column label="介绍" align="center" prop="introduction" />
-      <el-table-column label="展示图片URL" align="center" prop="imageUrl" width="100">
+      <el-table-column label="展示图片" align="center" prop="imageUrl" width="100">
         <template slot-scope="scope">
           <image-preview :src="scope.row.imageUrl" :width="50" :height="50"/>
         </template>

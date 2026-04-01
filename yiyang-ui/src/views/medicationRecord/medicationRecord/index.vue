@@ -224,6 +224,11 @@ export default {
     }
   },
   created() {
+    // 检查用户角色，如果是护工，只显示与当前登录id对应的记录
+    const roles = this.$store.getters.roles || []
+    if (roles.includes('caregiver')) {
+      this.queryParams.nurseId = this.$store.getters.userId
+    }
     this.getList()
   },
   methods: {

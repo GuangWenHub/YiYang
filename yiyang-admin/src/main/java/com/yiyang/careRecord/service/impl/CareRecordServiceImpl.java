@@ -2,6 +2,7 @@ package com.yiyang.careRecord.service.impl;
 
 import java.util.List;
 import com.yiyang.common.utils.DateUtils;
+import com.yiyang.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.yiyang.careRecord.mapper.CareRecordMapper;
@@ -41,6 +42,10 @@ public class CareRecordServiceImpl implements ICareRecordService
     @Override
     public List<CareRecord> selectCareRecordList(CareRecord careRecord)
     {
+        // 检查用户是否是护工，如果是，只返回与当前用户id对应的记录
+        if (SecurityUtils.hasRole("caregiver")) {
+            careRecord.setCreatorId(SecurityUtils.getUserId());
+        }
         return careRecordMapper.selectCareRecordList(careRecord);
     }
 

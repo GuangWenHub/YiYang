@@ -2,6 +2,7 @@ package com.yiyang.medicationRecord.service.impl;
 
 import java.util.List;
 import com.yiyang.common.utils.DateUtils;
+import com.yiyang.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.yiyang.medicationRecord.mapper.MedicationRecordMapper;
@@ -41,6 +42,10 @@ public class MedicationRecordServiceImpl implements IMedicationRecordService
     @Override
     public List<MedicationRecord> selectMedicationRecordList(MedicationRecord medicationRecord)
     {
+        // 检查用户是否是护工，如果是，只返回与当前用户id对应的记录
+        if (SecurityUtils.hasRole("caregiver")) {
+            medicationRecord.setNurseId(SecurityUtils.getUserId());
+        }
         return medicationRecordMapper.selectMedicationRecordList(medicationRecord);
     }
 

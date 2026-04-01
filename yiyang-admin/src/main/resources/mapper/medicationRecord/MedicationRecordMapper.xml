@@ -114,4 +114,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <delete id="deleteMedicationRecordByOrderId" parameterType="Long">
         delete from medication_record where order_id = #{orderId}
     </delete>
+    
+    <select id="selectMedicationRecordByOrderId" parameterType="Long" resultMap="MedicationRecordResult">
+        <include refid="selectMedicationRecordVo"/>
+        where mr.order_id = #{orderId}
+    </select>
 </mapper>

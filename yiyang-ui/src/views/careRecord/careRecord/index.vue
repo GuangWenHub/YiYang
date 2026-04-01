@@ -331,6 +331,11 @@ export default {
     }
   },
   created() {
+    // 检查用户角色，如果是护工，只显示与当前登录id对应的记录
+    const roles = this.$store.getters.roles || []
+    if (roles.includes('caregiver')) {
+      this.queryParams.creatorId = this.$store.getters.userId
+    }
     this.getList()
   },
   methods: {
@@ -459,14 +464,22 @@ export default {
     /** 完成打卡按钮操作 */
     handleCompleteCheckIn() {
       this.form.status = '1' // 已完成
-      this.submitForm()
-      this.checkInOpen = false
+      updateCareRecord(this.form).then(response => {
+        this.$modal.msgSuccess("打卡成功")
+        this.checkInOpen = false
+        this.reset()
+        this.getList()
+      })
     },
     /** 异常上报按钮操作 */
     handleExceptionReport() {
       this.form.status = '2' // 异常
-      this.submitForm()
-      this.checkInOpen = false
+      updateCareRecord(this.form).then(response => {
+        this.$modal.msgSuccess("异常上报成功")
+        this.checkInOpen = false
+        this.reset()
+        this.getList()
+      })
     }
   }
 }

@@ -22,9 +22,9 @@
         >提交建议</el-button>
       </el-col>
       <el-col :span="12">
-        <el-select v-model="viewMode" placeholder="选择查看模式" size="mini">
+        <el-select v-model="viewMode" placeholder="选择查看模式" size="mini" @change="getList">
           <el-option label="我的留言" value="my" />
-          <el-option label="全部留言" value="all" v-if="isAdmin" />
+          <el-option label="全部留言" value="all" v-if="hasAllPermission" />
         </el-select>
       </el-col>
     </el-row>
@@ -422,6 +422,8 @@ export default {
       replyMap: {},
       // 用户选项
       userOptions: [],
+      // 是否拥有查看全部留言的权限
+      hasAllPermission: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -433,15 +435,35 @@ export default {
     }
   },
   created() {
-    this.getList()
-    this.getUserList()
     this.checkAdmin()
+    this.checkAllPermission()
+    this.getUserList()
+    this.getList()
   },
   methods: {
     /** 查询沟通反馈列表 */
     getList() {
       this.loading = true
-      if (this.viewMode === 'my' || !this.isAdmin) {
+      if (this.viewMode === 'all' && this.hasAllPermission) {
+        // 查看全部留言
+        getAllFeedback().then(response => {
+          // 过滤掉有父id的回复，只显示主反馈
+          const mainFeedback = response.rows.filter(item => !item.parentId)
+          this.feedbackList = mainFeedback
+          this.total = mainFeedback.length
+          // 为每个反馈获取回复列表
+          this.feedbackList.forEach(item => {
+            this.getReplyList(item.feedbackId)
+          })
+          this.loading = false
+        }).catch(error => {
+          console.error('获取反馈列表失败:', error)
+          this.feedbackList = []
+          this.total = 0
+          this.loading = false
+          this.$modal.msgError('获取反馈列表失败，请刷新页面重试')
+        })
+      } else {
         // 同时获取用户收到的和发送的反馈
         Promise.all([getReceivedFeedback(), getSentFeedback()]).then(([receivedResponse, sentResponse]) => {
           // 合并两个列表，并去重
@@ -465,26 +487,11 @@ export default {
           this.loading = false
           this.$modal.msgError('获取反馈列表失败，请刷新页面重试')
         })
-      } else {
-        getAllFeedback().then(response => {
-          // 过滤掉有父id的回复，只显示主反馈
-          const mainFeedback = response.rows.filter(item => !item.parentId)
-          this.feedbackList = mainFeedback
-          this.total = mainFeedback.length
-          // 为每个反馈获取回复列表
-          this.feedbackList.forEach(item => {
-            this.getReplyList(item.feedbackId)
-          })
-          this.loading = false
-        }).catch(error => {
-          console.error('获取反馈列表失败:', error)
-          this.feedbackList = []
-          this.total = 0
-          this.loading = false
-          this.$modal.msgError('获取反馈列表失败，请刷新页面重试')
-        })
       }
     },
+
+
+
     /** 去重函数 */
     removeDuplicates(arr, key) {
       const seen = new Set()
@@ -508,10 +515,21 @@ export default {
 
     /** 检查是否为管理员 */
     checkAdmin() {
-      // 这里可以根据实际情况检查用户是否为管理员
-      // 简单起见，这里假设用户ID为1的是管理员
-      this.isAdmin = this.$store.getters.userId === 1
+      // 检查用户是否拥有管理员或超级管理员角色
+      const roles = this.$store.getters.roles || []
+      // 管理员角色通常是 'admin' 或 'sysadmin'
+      this.isAdmin = roles.includes('admin') || roles.includes('sysadmin')
     },
+    /** 检查是否拥有查看全部留言的权限 */
+    checkAllPermission() {
+      // 检查用户是否拥有 feedback:feedback:all 权限或 ALL_PERMISSION 权限
+      const permissions = this.$store.getters.permissions || []
+      this.hasAllPermission = permissions.includes('feedback:feedback:all') || permissions.includes('*:*:*')
+    },
+
+
+
+
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
