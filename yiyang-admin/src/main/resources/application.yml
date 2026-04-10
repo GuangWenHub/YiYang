@@ -12,6 +12,13 @@ ruoyi:
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
+# Dify AI 配置
+dify:
+  api:
+    # Dify API 地址
+    url: http://your-dify-host/v1
+    # Dify API Key
+    key: your-dify-api-key
 
 # 开发环境配置
 server:

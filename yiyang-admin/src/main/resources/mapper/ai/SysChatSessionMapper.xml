@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.ai.mapper.SysChatSessionMapper">
+    <resultMap id="SysChatSessionResult" type="com.yiyang.ai.domain.SysChatSession">
+        <id     property="id"       column="id"      />
+        <result property="sessionName" column="session_name" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <select id="selectAllSessions" resultMap="SysChatSessionResult">
+        select id, session_name, create_time, update_time
+        from sys_chat_session
+        order by create_time desc
+    </select>
+
+    <select id="selectSessionById" parameterType="string" resultMap="SysChatSessionResult">
+        select id, session_name, create_time, update_time
+        from sys_chat_session
+        where id = #{id}
+    </select>
+
+    <insert id="insertSession" parameterType="com.yiyang.ai.domain.SysChatSession">
+        insert into sys_chat_session (id, session_name, create_time, update_time)
+        values (#{id}, #{sessionName}, now(), now())
+    </insert>
+
+    <update id="updateSession" parameterType="com.yiyang.ai.domain.SysChatSession">
+        update sys_chat_session
+        set session_name = #{sessionName},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSession" parameterType="string">
+        delete from sys_chat_session
+        where id = #{id}
+    </delete>
+</mapper>

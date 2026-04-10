@@ -43,8 +43,15 @@ public class MedicationRecordServiceImpl implements IMedicationRecordService
     public List<MedicationRecord> selectMedicationRecordList(MedicationRecord medicationRecord)
     {
         // 检查用户是否是护工，如果是，只返回与当前用户id对应的记录
-        if (SecurityUtils.hasRole("caregiver")) {
-            medicationRecord.setNurseId(SecurityUtils.getUserId());
+        // 管理员和超级管理员可以看到所有记录
+        try {
+            if (SecurityUtils.hasRole("caregiver") && 
+                !SecurityUtils.hasRole("admin") && 
+                !SecurityUtils.hasRole("superadmin")) {
+                medicationRecord.setNurseId(SecurityUtils.getUserId());
+            }
+        } catch (Exception e) {
+            // 如果权限检查失败，不添加过滤条件，显示所有记录
         }
         return medicationRecordMapper.selectMedicationRecordList(medicationRecord);
     }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yiyang.ai.mapper.SysChatHistoryMapper">
+    <resultMap id="SysChatHistoryResult" type="com.yiyang.ai.domain.SysChatHistory">
+        <id     property="id"       column="id"      />
+        <result property="chatId"    column="chat_id" />
+        <result property="query"     column="query"   />
+        <result property="answer"    column="answer"  />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <select id="selectHistoryByChatId" parameterType="string" resultMap="SysChatHistoryResult">
+        select id, chat_id, query, answer, create_time
+        from sys_chat_history
+        where chat_id = #{chatId}
+        order by create_time asc
+    </select>
+
+    <insert id="insertHistory" parameterType="com.yiyang.ai.domain.SysChatHistory">
+        insert into sys_chat_history (chat_id, query, answer, create_time)
+        values (#{chatId}, #{query}, #{answer}, now())
+    </insert>
+
+    <delete id="deleteHistoryByChatId" parameterType="string">
+        delete from sys_chat_history
+        where chat_id = #{chatId}
+    </delete>
+</mapper>
