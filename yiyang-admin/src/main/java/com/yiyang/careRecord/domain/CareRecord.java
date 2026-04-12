@@ -56,7 +56,7 @@ public class CareRecord extends BaseEntity
     private String status;
 
     /** 打卡图片URL */
-    @Excel(name = "打卡图片URL")
+    @Excel(name = "打卡图片")
     private String imageUrl;
 
     /** 删除标志（0代表存在 2代表删除） */

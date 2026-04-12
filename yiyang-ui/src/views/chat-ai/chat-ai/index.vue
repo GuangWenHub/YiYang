@@ -58,6 +58,7 @@
 
 <script>
 import { sendChatMessage, getChatHistoryIds, getChatHistoryDetail, deleteChatHistory } from '@/api/chat-ai/chat-ai'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'ChatAI',
@@ -70,6 +71,13 @@ export default {
       isNewChat: true,
       historyList: []
     }
+  },
+  computed: {
+    ...mapGetters([
+      'roles',
+      'name',
+      'nickName'
+    ])
   },
   mounted() {
     this.loadChatHistory()
@@ -106,7 +114,8 @@ export default {
           return
         }
         this.messages = this.transformHistoryData(historyData)
-        console.log('转换后的消息:', this.messages)
+        // 加载完成后滚动到最底部，显示最新的一条消息
+        this.scrollToBottom()
       } catch (error) {
         console.error('加载聊天详情失败:', error)
       }
@@ -145,9 +154,45 @@ export default {
         const chatId = this.isNewChat ? null : this.currentChatId
         
         console.log('1. 准备发送请求，数据:', { prompt, chatId })
+        console.log('1.1 用户角色:', this.roles, '用户名:', this.name)
         
-        const response = await sendChatMessage({ prompt, chatId })
+        const response = await sendChatMessage({ 
+          prompt, 
+          chatId,
+          userRole: this.roles,
+          userName: this.name 
+        })
+        
         console.log('2. 收到响应，状态码:', response.status)
+        
+        // 检查是否是会话不存在的错误
+        if (response.status === 400) {
+          const errorData = await response.json()
+          console.error('❌ 错误信息:', errorData)
+          
+          if (errorData.error === 'CONVERSATION_NOT_EXISTS') {
+            // 会话已过期，提示用户并创建新会话
+            this.$message.error('会话已过期，将为您创建新会话')
+            
+            // 清空当前会话
+            this.currentChatId = null
+            this.isNewChat = true
+            this.messages = []
+            
+            // 添加新会话到历史列表
+            this.historyList.unshift({ id: null, name: '新会话' })
+            
+            // 重新发送消息
+            this.userInput = prompt
+            this.messages.pop() // 移除刚才添加的 AI 消息
+            this.messages.pop() // 移除用户消息
+            this.isStreaming = false
+            await this.sendMessage() // 递归调用，重新发送
+            return
+          } else {
+            throw new Error(errorData.message || '请求失败')
+          }
+        }
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -157,7 +202,6 @@ export default {
         if (this.isNewChat) {
           console.log('响应头信息:', [...response.headers.entries()])
           const newChatId = response.headers.get('X-Chat-Id') || response.headers.get('chat-id') || response.headers.get('Chat-Id')
-          console.log('尝试获取的会话ID:', newChatId)
           if (newChatId) {
             this.currentChatId = newChatId
             // 更新历史列表中对应的项

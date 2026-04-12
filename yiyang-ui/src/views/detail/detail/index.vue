@@ -290,11 +290,40 @@ export default {
       listDetail(this.queryParams).then(response => {
         this.detailList = response.rows
         this.total = response.total
+        // 检查是否有超时任务
+        this.checkTimeoutTasks()
         // 为每个明细获取对应的项目单信息
         this.loading = false
         this.detailList.forEach(detail => {
           this.getProjectOrderInfo(detail.orderId)
         })
+      })
+    },
+    /** 检查超时任务 */
+    checkTimeoutTasks() {
+      const now = new Date()
+      this.detailList.forEach(task => {
+        if (task.status !== 4 && task.status !== 1 && task.status !== 5) { // 不是已完成、待审核或已超时状态
+          const startDate = new Date(task.startDate)
+          if (startDate < now) {
+            // 任务已超时，更新状态为已超时
+            this.updateTaskStatus(task.detailId, 5)
+          }
+        }
+      })
+    },
+    /** 更新任务状态 */
+    updateTaskStatus(detailId, status) {
+      const task = {
+        detailId: detailId,
+        status: status
+      }
+      updateDetail(task).then(response => {
+        console.log('任务状态更新成功:', response)
+        // 重新获取列表
+        this.getList()
+      }).catch(error => {
+        console.error('任务状态更新失败:', error)
       })
     },
     /** 获取项目单信息 */

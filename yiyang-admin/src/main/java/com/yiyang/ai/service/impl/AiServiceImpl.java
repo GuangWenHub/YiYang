@@ -48,9 +48,10 @@ public class AiServiceImpl implements IAiService {
     }
 
     @Override
-    public void sendChatMessage(String prompt, String chatId, HttpServletResponse response) throws IOException {
+    public void sendChatMessage(String prompt, String chatId, String userRole, String userName, HttpServletResponse response) throws IOException {
         System.out.println("========================================");
         System.out.println("3. 开始处理聊天消息，prompt: " + prompt + ", chatId: " + chatId);
+        System.out.println("3.1 用户角色：" + userRole + ", 用户名：" + userName);
         
         // 设置响应头
         response.setContentType("text/event-stream;charset=UTF-8");
@@ -58,24 +59,34 @@ public class AiServiceImpl implements IAiService {
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Connection", "keep-alive");
         response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("X-Accel-Buffering", "no"); // 禁用nginx缓冲
+        response.setHeader("X-Accel-Buffering", "no"); // 禁用 nginx 缓冲
 
-        // 创建或获取会话ID
+        // 创建或获取会话 ID
         boolean isNewConversation = (chatId == null || chatId.isEmpty());
-        final boolean finalIsNewConversation = isNewConversation; // 用于lambda表达式
+        final boolean finalIsNewConversation = isNewConversation; // 用于 lambda 表达式
         
         if (isNewConversation) {
-            System.out.println("4. 创建新会话，不传递conversation_id");
+            System.out.println("4. 创建新会话，不传递 conversation_id");
         } else {
-            System.out.println("4. 使用现有会话ID: " + chatId);
+            System.out.println("4. 使用现有会话 ID: " + chatId);
         }
 
-        // 构建请求体
+        // 构建请求体 - 将用户角色和用户名传递给 Dify
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("inputs", new HashMap<>());
+        Map<String, String> inputs = new HashMap<>();
+        
+        // 添加用户角色和用户名到 inputs
+        if (userRole != null && !userRole.isEmpty()) {
+            inputs.put("user_role", userRole);
+        }
+        if (userName != null && !userName.isEmpty()) {
+            inputs.put("user_name", userName);
+        }
+        
+        requestBody.put("inputs", inputs);
         requestBody.put("query", prompt);
         requestBody.put("response_mode", "streaming");
-        requestBody.put("user", "system_user");
+        requestBody.put("user", userName != null && !userName.isEmpty() ? userName : "system_user");
         
         if (!isNewConversation) {
             requestBody.put("conversation_id", chatId);
@@ -83,7 +94,7 @@ public class AiServiceImpl implements IAiService {
         
         requestBody.put("files", new ArrayList<>());
         String jsonBody = objectMapper.writeValueAsString(requestBody);
-        System.out.println("5. 构建Dify API请求体: " + jsonBody);
+        System.out.println("5. 构建 Dify API 请求体：" + jsonBody);
 
         final String finalChatId = chatId;
         final String finalPrompt = prompt;
@@ -111,7 +122,48 @@ public class AiServiceImpl implements IAiService {
                 os.flush();
             }
             
-            System.out.println("6. Dify API响应码: " + connection.getResponseCode());
+            int responseCode = connection.getResponseCode();
+            System.out.println("6. Dify API 响应码：" + responseCode);
+            
+            // 如果响应码是 404 且提示 Conversation Not Exists，说明会话 ID 不存在
+            if (responseCode == 404) {
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+                String errorLine;
+                StringBuilder errorBuilder = new StringBuilder();
+                while ((errorLine = errorReader.readLine()) != null) {
+                    errorBuilder.append(errorLine);
+                }
+                System.out.println("6.4 错误响应体：" + errorBuilder.toString());
+                
+                // 检查是否是会话不存在的错误
+                if (errorBuilder.toString().contains("Conversation Not Exists")) {
+                    System.out.println("6.5 会话 ID 不存在，返回错误信息给前端...");
+                    
+                    // 返回特定错误信息给前端，让前端提示用户创建新会话
+                    response.setStatus(400);
+                    response.setContentType("application/json;charset=UTF-8");
+                    String errorJson = "{\"error\": \"CONVERSATION_NOT_EXISTS\", \"message\": \"会话已过期，请创建新会话后重试\"}";
+                    response.getWriter().write(errorJson);
+                    response.getWriter().flush();
+                    return; // 直接返回，不继续处理
+                }
+            }
+            
+            // 如果响应码不是 200，读取错误响应
+            if (responseCode != 200) {
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+                String errorLine;
+                StringBuilder errorBuilder = new StringBuilder();
+                while ((errorLine = errorReader.readLine()) != null) {
+                    errorBuilder.append(errorLine);
+                }
+                System.out.println("6.6 错误响应体：" + errorBuilder.toString());
+                
+                response.getWriter().write("data: {\"error\": \"" + escapeJson(errorBuilder.toString()) + "\"}\n\n");
+                response.getWriter().write("data: [DONE]\n\n");
+                response.getWriter().flush();
+                return;
+            }
             
             // 读取流式响应
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));

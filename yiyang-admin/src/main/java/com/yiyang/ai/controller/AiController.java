@@ -31,12 +31,14 @@ public class AiController extends BaseController {
     @PostMapping(value = "/chat", produces = "text/event-stream")
     public void chat(@RequestBody Map<String, Object> requestBody, HttpServletResponse response) throws IOException {
         System.out.println("========================================");
-        System.out.println("1. 收到前端请求，请求体: " + requestBody);
+        System.out.println("1. 收到前端请求，请求体：" + requestBody);
         String prompt = (String) requestBody.get("prompt");
         String chatId = (String) requestBody.get("chatId");
-        System.out.println("2. 提取参数，prompt: " + prompt + ", chatId: " + chatId);
+        String userRole = (String) requestBody.get("userRole");
+        String userName = (String) requestBody.get("userName");
+        System.out.println("2. 提取参数，prompt: " + prompt + ", chatId: " + chatId + ", userRole: " + userRole + ", userName: " + userName);
         System.out.println("========================================");
-        aiService.sendChatMessage(prompt, chatId, response);
+        aiService.sendChatMessage(prompt, chatId, userRole, userName, response);
         System.out.println("6. 处理请求完成");
     }
 

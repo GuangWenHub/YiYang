@@ -142,6 +142,7 @@
             v-hasPermi="['careRecord:careRecord:remove']"
           >删除</el-button>
           <el-button
+            v-if="scope.row.status !== '1'"
             size="mini"
             type="text"
             icon="el-icon-check"
@@ -345,7 +346,36 @@ export default {
       listCareRecord(this.queryParams).then(response => {
         this.careRecordList = response.rows
         this.total = response.total
+        // 检查是否有超时任务
+        this.checkTimeoutTasks()
         this.loading = false
+      })
+    },
+    /** 检查超时任务 */
+    checkTimeoutTasks() {
+      const now = new Date()
+      this.careRecordList.forEach(task => {
+        if (task.status !== '1' && task.status !== '2' && task.status !== '3') { // 不是已完成、异常或已超时状态
+          const careTime = new Date(task.careTime)
+          if (careTime < now) {
+            // 任务已超时，更新状态为已超时
+            this.updateTaskStatus(task.recordId, '3')
+          }
+        }
+      })
+    },
+    /** 更新任务状态 */
+    updateTaskStatus(recordId, status) {
+      const task = {
+        recordId: recordId,
+        status: status
+      }
+      updateCareRecord(task).then(response => {
+        console.log('任务状态更新成功:', response)
+        // 重新获取列表
+        this.getList()
+      }).catch(error => {
+        console.error('任务状态更新失败:', error)
       })
     },
     // 取消按钮
