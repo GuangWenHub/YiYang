@@ -86,15 +86,16 @@ export default {
     async loadChatHistory() {
       try {
         const response = await getChatHistoryIds()
-        if (response.data.length === 0) {
+        console.log('加载聊天历史响应:', response)
+        if (response.length === 0) {
           this.historyList = [{ id: null, name: '新会话' }]
           this.currentChatId = null
           this.isNewChat = true
         } else {
-          this.historyList = response.data
-          this.currentChatId = response.data[0].id
+          this.historyList = response
+          this.currentChatId = response[0].id
           this.isNewChat = false
-          await this.loadChatDetail(response.data[0].id)
+          await this.loadChatDetail(response[0].id)
         }
       } catch (error) {
         this.$message.error('加载聊天历史失败')

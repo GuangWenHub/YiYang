@@ -92,6 +92,29 @@ public class DoctorHandoverController extends BaseController
     }
 
     /**
+     * 医生交班
+     */
+    @PreAuthorize("@ss.hasPermi('handover:handover:handover')")
+    @Log(title = "医生交班记录", businessType = BusinessType.UPDATE)
+    @PutMapping("/handover")
+    public AjaxResult handover(@RequestBody DoctorHandover doctorHandover)
+    {
+        // 强制获取当前登录用户 ID 并设置到 nextDoctorId（双重保障）
+        Long currentUserId = getUserId();
+        System.out.println("当前登录用户 ID: " + currentUserId);
+        System.out.println("前端传递的 nextDoctorId: " + doctorHandover.getNextDoctorId());
+        
+        // 覆盖前端传递的 nextDoctorId，确保使用当前登录用户的 ID
+        doctorHandover.setNextDoctorId(currentUserId);
+        
+        // 设置状态为已交接
+        doctorHandover.setStatus("1");
+        
+        System.out.println("最终设置的 nextDoctorId: " + doctorHandover.getNextDoctorId());
+        return toAjax(doctorHandoverService.updateDoctorHandover(doctorHandover));
+    }
+
+    /**
      * 删除医生交班记录
      */
     @PreAuthorize("@ss.hasPermi('handover:handover:remove')")

@@ -28,5 +28,5 @@ public interface IAiService {
     /**
      * 删除聊天历史
      */
-    void deleteChatHistory(String chatId);
+    int deleteChatHistory(String chatId);
 }

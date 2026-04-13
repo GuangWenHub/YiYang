@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * 聊天会话Mapper
+ * 聊天会话 Mapper
  */
 @Mapper
 public interface SysChatSessionMapper {
@@ -17,7 +17,12 @@ public interface SysChatSessionMapper {
     List<SysChatSession> selectAllSessions();
 
     /**
-     * 根据ID查询会话
+     * 根据用户 ID 查询会话
+     */
+    List<SysChatSession> selectSessionsByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据 ID 查询会话
      */
     SysChatSession selectSessionById(@Param("id") String id);
 

@@ -7,6 +7,7 @@ import java.util.Date;
  */
 public class SysChatSession {
     private String id;
+    private Long userId;  // 新增用户 ID 字段
     private String sessionName;
     private Date createTime;
     private Date updateTime;
@@ -17,6 +18,14 @@ public class SysChatSession {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getSessionName() {

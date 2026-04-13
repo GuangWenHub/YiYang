@@ -406,14 +406,17 @@ export default {
       this.$message.info(`正在跳转到：${suggestion.action}`)
       // 根据建议类型跳转到对应页面
       const routeMap = {
-        task: '/careRecord/careRecord',
-        health: '/record/record',
-        medical: '/medicalOrder/medicalOrder',
-        handover: '/handover/handover',
-        system: '/elderly/elderly'
+        task: '/careRecord/index',
+        health: '/record/index',
+        medical: '/medicalOrder/index',
+        handover: '/handover/index',
+        system: '/elderly/index',
+        general: '/dashboard/index'
       }
       if (routeMap[suggestion.type]) {
         this.$router.push(routeMap[suggestion.type])
+      } else {
+        this.$message.warning('暂未开放')
       }
     },
 

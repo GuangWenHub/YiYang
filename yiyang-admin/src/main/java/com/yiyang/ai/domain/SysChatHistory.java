@@ -7,6 +7,7 @@ import java.util.Date;
  */
 public class SysChatHistory {
     private Long id;
+    private Long userId;  // 新增用户 ID 字段
     private String chatId;
     private String query;
     private String answer;
@@ -18,6 +19,14 @@ public class SysChatHistory {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getChatId() {

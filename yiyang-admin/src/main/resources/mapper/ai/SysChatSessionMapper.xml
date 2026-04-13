@@ -5,26 +5,34 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.yiyang.ai.mapper.SysChatSessionMapper">
     <resultMap id="SysChatSessionResult" type="com.yiyang.ai.domain.SysChatSession">
         <id     property="id"       column="id"      />
+        <result property="userId"   column="user_id" />
         <result property="sessionName" column="session_name" />
         <result property="createTime" column="create_time" />
         <result property="updateTime" column="update_time" />
     </resultMap>
 
     <select id="selectAllSessions" resultMap="SysChatSessionResult">
-        select id, session_name, create_time, update_time
+        select id, user_id, session_name, create_time, update_time
         from sys_chat_session
         order by create_time desc
     </select>
 
+    <select id="selectSessionsByUserId" parameterType="Long" resultMap="SysChatSessionResult">
+        select id, user_id, session_name, create_time, update_time
+        from sys_chat_session
+        where user_id = #{userId}
+        order by create_time desc
+    </select>
+
     <select id="selectSessionById" parameterType="string" resultMap="SysChatSessionResult">
-        select id, session_name, create_time, update_time
+        select id, user_id, session_name, create_time, update_time
         from sys_chat_session
         where id = #{id}
     </select>
 
     <insert id="insertSession" parameterType="com.yiyang.ai.domain.SysChatSession">
-        insert into sys_chat_session (id, session_name, create_time, update_time)
-        values (#{id}, #{sessionName}, now(), now())
+        insert into sys_chat_session (id, user_id, session_name, create_time, update_time)
+        values (#{id}, #{userId}, #{sessionName}, now(), now())
     </insert>
 
     <update id="updateSession" parameterType="com.yiyang.ai.domain.SysChatSession">

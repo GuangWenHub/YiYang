@@ -12,7 +12,7 @@
       <el-form-item label="待交接医生ID" prop="nextDoctorId">
         <el-input
           v-model="queryParams.nextDoctorId"
-          placeholder="请输入待交接医生ID"
+          placeholder="请输入交接医生ID"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -119,6 +119,14 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
+            v-if="scope.row.status === '0'"
+            size="mini"
+            type="text"
+            icon="el-icon-edit"
+            @click="handleHandover(scope.row)"
+            v-hasPermi="['handover:handover:handover']"
+          >去交接</el-button>
+          <el-button
             size="mini"
             type="text"
             icon="el-icon-edit"
@@ -147,11 +155,11 @@
     <!-- 添加或修改医生交班记录对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="当前医生ID" prop="currentDoctorId">
-          <el-input v-model="form.currentDoctorId" placeholder="请输入当前医生ID" />
+        <el-form-item label="当前医生 ID" prop="currentDoctorId">
+          <el-input v-model="form.currentDoctorId" placeholder="请输入当前医生 ID" />
         </el-form-item>
-        <el-form-item label="待交接医生ID" prop="nextDoctorId">
-          <el-input v-model="form.nextDoctorId" placeholder="请输入待交接医生ID" />
+        <el-form-item label="待交接医生 ID" prop="nextDoctorId">
+          <el-input v-model="form.nextDoctorId" placeholder="请输入待交接医生 ID" />
         </el-form-item>
         <el-form-item label="上班时间" prop="startTime">
           <el-date-picker clearable
@@ -187,17 +195,50 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 去交接对话框 -->
+    <el-dialog :title="handoverTitle" :visible.sync="handoverOpen" width="500px" append-to-body>
+      <el-form ref="handoverForm" :model="handoverForm" label-width="80px">
+        <el-form-item label="交接记录 ID" prop="handoverId">
+          <el-input v-model="handoverForm.handoverId" disabled />
+        </el-form-item>
+        <el-form-item label="当前医生 ID" prop="currentDoctorId">
+          <el-input v-model="handoverForm.currentDoctorId" disabled />
+        </el-form-item>
+        <el-form-item label="上班时间" prop="startTime">
+          <el-date-picker
+            v-model="handoverForm.startTime"
+            type="date"
+            value-format="yyyy-MM-dd"
+            placeholder="请选择上班时间"
+            disabled>
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="当前情况概述" prop="overview">
+          <el-input v-model="handoverForm.overview" type="textarea" disabled />
+        </el-form-item>
+        <el-form-item label="交接医生 ID" prop="nextDoctorId">
+          <el-input v-model="handoverForm.nextDoctorId" disabled />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitHandover">确认交接</el-button>
+        <el-button @click="cancelHandover">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listHandover, getHandover, delHandover, addHandover, updateHandover } from "@/api/handover/handover"
+import { listHandover, getHandover, delHandover, addHandover, updateHandover, handover } from "@/api/handover/handover"
 
 export default {
   name: "Handover",
   dicts: ['handover_status'],
   data() {
     return {
+      // 当前登录用户 ID
+      currentUserId: null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -214,8 +255,12 @@ export default {
       handoverList: [],
       // 弹出层标题
       title: "",
+      // 去交接弹出层标题
+      handoverTitle: "去交接",
       // 是否显示弹出层
       open: false,
+      // 是否显示交接弹出层
+      handoverOpen: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -228,13 +273,15 @@ export default {
       },
       // 表单参数
       form: {},
+      // 交接表单参数
+      handoverForm: {},
       // 表单校验
       rules: {
         currentDoctorId: [
-          { required: true, message: "当前医生ID不能为空", trigger: "blur" }
+          { required: true, message: "当前医生 ID 不能为空", trigger: "blur" }
         ],
         nextDoctorId: [
-          { required: true, message: "待交接医生ID不能为空", trigger: "blur" }
+          { required: true, message: "待交接医生 ID 不能为空", trigger: "blur" }
         ],
         startTime: [
           { required: true, message: "上班时间不能为空", trigger: "blur" }
@@ -246,6 +293,12 @@ export default {
     }
   },
   created() {
+    // 获取当前登录用户 ID (参考 projectOrder 的方法)
+    this.currentUserId = this.$store.getters.userId
+    if (!this.currentUserId && this.$store.state.user) {
+      this.currentUserId = this.$store.state.user.userId || this.$store.state.user.id
+    }
+    console.log('初始化 - 当前登录用户 ID:', this.currentUserId)
     this.getList()
   },
   methods: {
@@ -281,6 +334,19 @@ export default {
       }
       this.resetForm("form")
     },
+    // 交接表单重置
+    resetHandover() {
+      this.handoverForm = {
+        handoverId: null,
+        currentDoctorId: null,
+        nextDoctorId: null,
+        startTime: null,
+        endTime: null,
+        status: null,
+        overview: null
+      }
+      this.resetForm("handoverForm")
+    },
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
@@ -311,6 +377,61 @@ export default {
         this.form = response.data
         this.open = true
         this.title = "修改医生交班记录"
+      })
+    },
+    /** 去交接按钮操作 */
+    handleHandover(row) {
+      this.resetHandover()
+      const handoverId = row.handoverId
+      
+      // --- 获取当前登录用户 ID (参考 projectOrder 的方法) ---
+      let userId = this.$store.getters.userId
+      if (!userId && this.$store.state.user) {
+        userId = this.$store.state.user.userId || this.$store.state.user.id
+      }
+      
+      console.log('当前登录用户 ID:', userId)
+      console.log('交接记录 ID:', handoverId)
+      
+      getHandover(handoverId).then(response => {
+        console.log('获取到的交接记录:', response.data)
+        this.handoverForm = response.data
+        
+        // 强制设置当前登录用户 ID 到 nextDoctorId
+        if (userId) {
+          this.$set(this.handoverForm, 'nextDoctorId', userId)
+          console.log('设置的 nextDoctorId:', this.handoverForm.nextDoctorId)
+        } else {
+          this.$modal.msgWarning('未获取到当前登录用户 ID，请重新登录')
+        }
+        
+        // 设置为已交接状态
+        this.handoverForm.status = '1'
+        this.handoverOpen = true
+        this.handoverTitle = "去交接"
+        
+        // 确保输入框显示当前用户 ID（需要等待 DOM 更新）
+        this.$nextTick(() => {
+          if (userId) {
+            this.handoverForm.nextDoctorId = userId
+            console.log('最终设置的 nextDoctorId:', this.handoverForm.nextDoctorId)
+          }
+        })
+      })
+    },
+    /** 取消交接 */
+    cancelHandover() {
+      this.handoverOpen = false
+      this.resetHandover()
+    },
+    /** 提交交接 */
+    submitHandover() {
+      // 使用专门的 handover API，需要 handover:handover:handover 权限
+      handover(this.handoverForm).then(response => {
+        this.$modal.msgSuccess("交接成功")
+        this.handoverOpen = false
+        this.resetHandover()
+        this.getList()
       })
     },
     /** 提交按钮 */

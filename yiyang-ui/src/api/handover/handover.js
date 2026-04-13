@@ -35,6 +35,15 @@ export function updateHandover(data) {
   })
 }
 
+// 医生交班
+export function handover(data) {
+  return request({
+    url: '/handover/handover/handover',
+    method: 'put',
+    data: data
+  })
+}
+
 // 删除医生交班记录
 export function delHandover(handoverId) {
   return request({

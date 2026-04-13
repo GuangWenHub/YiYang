@@ -6,6 +6,7 @@ import com.yiyang.ai.domain.SysChatHistory;
 import com.yiyang.ai.mapper.SysChatSessionMapper;
 import com.yiyang.ai.mapper.SysChatHistoryMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yiyang.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,10 @@ public class AiServiceImpl implements IAiService {
         System.out.println("3. 开始处理聊天消息，prompt: " + prompt + ", chatId: " + chatId);
         System.out.println("3.1 用户角色：" + userRole + ", 用户名：" + userName);
         
+        // 获取当前登录用户 ID
+        Long userId = SecurityUtils.getUserId();
+        System.out.println("3.2 当前登录用户 ID: " + userId);
+        
         // 设置响应头
         response.setContentType("text/event-stream;charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
@@ -98,6 +103,7 @@ public class AiServiceImpl implements IAiService {
 
         final String finalChatId = chatId;
         final String finalPrompt = prompt;
+        final Long finalUserId = userId; // 用于 lambda 表达式
         final String[] conversationIdHolder = new String[1];
         final StringBuilder aiResponseBuilder = new StringBuilder();
 
@@ -260,8 +266,8 @@ public class AiServiceImpl implements IAiService {
                         responseText = secondHalf;
                     }
                 }
-                saveChatHistory(saveChatId, finalPrompt, responseText);
-                System.out.println("13. 保存聊天历史，chatId: " + saveChatId);
+                saveChatHistory(saveChatId, finalPrompt, responseText, finalUserId);
+                System.out.println("13. 保存聊天历史，chatId: " + saveChatId + ", userId: " + finalUserId);
             }
             
         } catch (Exception e) {
@@ -293,15 +299,21 @@ public class AiServiceImpl implements IAiService {
     public List<Map<String, Object>> getChatHistoryIds() {
         List<Map<String, Object>> historyList = new ArrayList<>();
         
-        // 从数据库查询所有会话
-        List<SysChatSession> sessions = sysChatSessionMapper.selectAllSessions();
+        // 获取当前登录用户 ID
+        Long userId = SecurityUtils.getUserId();
+        System.out.println("获取聊天历史列表，userId: " + userId);
+        
+        // 从数据库查询当前用户的会话
+        List<SysChatSession> sessions = sysChatSessionMapper.selectSessionsByUserId(userId);
         for (SysChatSession session : sessions) {
             Map<String, Object> item = new HashMap<>();
             item.put("id", session.getId());
             item.put("name", session.getSessionName());
+            item.put("createTime", session.getCreateTime());
             historyList.add(item);
         }
         
+        System.out.println("查询到 " + historyList.size() + " 条历史会话");
         return historyList;
     }
 
@@ -326,30 +338,33 @@ public class AiServiceImpl implements IAiService {
     }
 
     @Override
-    public void deleteChatHistory(String chatId) {
+    public int deleteChatHistory(String chatId) {
         // 从数据库删除聊天会话（级联删除聊天历史）
-        sysChatSessionMapper.deleteSession(chatId);
+
+        return sysChatSessionMapper.deleteSession(chatId);
     }
 
     /**
      * 保存聊天历史
      */
-    private void saveChatHistory(String chatId, String prompt, String response) {
+    private void saveChatHistory(String chatId, String prompt, String response, Long userId) {
         // 检查会话是否存在
         SysChatSession session = sysChatSessionMapper.selectSessionById(chatId);
         if (session == null) {
             // 创建新会话
             session = new SysChatSession();
             session.setId(chatId);
+            session.setUserId(userId);
             // 使用第一条消息作为会话名称
             String sessionName = prompt.length() > 20 ? prompt.substring(0, 20) + "..." : prompt;
             session.setSessionName(sessionName);
             sysChatSessionMapper.insertSession(session);
         }
         
-        // 保存用户消息和AI回复
+        // 保存用户消息和 AI 回复
         SysChatHistory history = new SysChatHistory();
         history.setChatId(chatId);
+        history.setUserId(userId);
         history.setQuery(prompt);
         history.setAnswer(response);
         sysChatHistoryMapper.insertHistory(history);

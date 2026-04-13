@@ -1,8 +1,6 @@
 package com.yiyang.ai.controller;
 
 import com.yiyang.ai.service.IAiService;
-import com.yiyang.common.core.controller.BaseController;
-import com.yiyang.common.core.domain.AjaxResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,16 +8,16 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 /**
- * AI 控制器
+ * AI 助手 Controller
  */
-@Api(tags = "AI助手")
+@Api(tags = "AI 助手")
 @RestController
 @RequestMapping("/ai")
-public class AiController extends BaseController {
+public class AiController {
 
     @Autowired
     private IAiService aiService;
@@ -47,8 +45,9 @@ public class AiController extends BaseController {
      */
     @ApiOperation("获取聊天历史列表")
     @GetMapping("/history")
-    public AjaxResult getChatHistoryIds() {
-        return success(aiService.getChatHistoryIds());
+    public List<Map<String, Object>> getChatHistoryIds() {
+        System.out.println("获取聊天历史列表");
+        return aiService.getChatHistoryIds();
     }
 
     /**
@@ -56,8 +55,9 @@ public class AiController extends BaseController {
      */
     @ApiOperation("获取聊天历史详情")
     @GetMapping("/history/{chatId}")
-    public AjaxResult getChatHistoryDetail(@PathVariable String chatId) {
-        return success(aiService.getChatHistoryDetail(chatId));
+    public List<Map<String, Object>> getChatHistoryDetail(@PathVariable String chatId) {
+        System.out.println("获取聊天历史详情，chatId: " + chatId);
+        return aiService.getChatHistoryDetail(chatId);
     }
 
     /**
@@ -65,35 +65,9 @@ public class AiController extends BaseController {
      */
     @ApiOperation("删除聊天历史")
     @DeleteMapping("/history/{chatId}")
-    public AjaxResult deleteChatHistory(@PathVariable String chatId) {
-        aiService.deleteChatHistory(chatId);
-        return success();
-    }
-
-    /**
-     * 测试流式响应
-     */
-    @ApiOperation("测试流式响应")
-    @GetMapping(value = "/test-stream", produces = "text/event-stream")
-    public void testStream(HttpServletResponse response) throws IOException, InterruptedException {
-        System.out.println("测试流式响应开始");
-        response.setContentType("text/event-stream");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader("Cache-Control", "no-cache");
-        response.setHeader("Connection", "keep-alive");
-        
-        PrintWriter writer = response.getWriter();
-        
-        for (int i = 1; i <= 5; i++) {
-            String msg = "这是第" + i + "个字";
-            writer.write("data: " + msg + "\n\n");
-            writer.flush();
-            System.out.println("发送: " + msg);
-            Thread.sleep(500); // 模拟延迟
-        }
-        
-        writer.write("data: [DONE]\n\n");
-        writer.flush();
-        System.out.println("测试流式响应结束");
+    public int deleteChatHistory(@PathVariable String chatId) {
+        System.out.println("删除聊天历史，chatId: " + chatId);
+        return aiService.deleteChatHistory(chatId);
     }
 }
+
