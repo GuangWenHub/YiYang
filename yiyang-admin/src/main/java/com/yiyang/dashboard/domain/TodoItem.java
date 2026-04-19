@@ -33,13 +33,17 @@ public class TodoItem implements Serializable {
     /** 截止时间 */
     private Date deadline;
 
-    /** 优先级：high-高, medium-中, low-低 */
+    /** 优先级：high-高，medium-中，low-低 */
     private String priority;
 
-    /** 跳转路由 */
+    /** 跳转路由（已废弃，使用 routeName） */
+    @Deprecated
     private String route;
 
-    /** 关联记录ID */
+    /** 跳转路由名称 */
+    private String routeName;
+
+    /** 关联记录 ID */
     private Long recordId;
 
     // Getters and Setters
@@ -113,6 +117,14 @@ public class TodoItem implements Serializable {
 
     public void setRoute(String route) {
         this.route = route;
+    }
+
+    public String getRouteName() {
+        return routeName;
+    }
+
+    public void setRouteName(String routeName) {
+        this.routeName = routeName;
     }
 
     public Long getRecordId() {

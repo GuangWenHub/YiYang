@@ -476,13 +476,14 @@ export default {
     async refreshHistoryList() {
       try {
         const response = await getChatHistoryIds()
-        if (response.data && response.data.length > 0) {
-          this.historyList = response.data
+        console.log('refreshHistoryList响应:', response)
+        if (response && response.length > 0) {
+          this.historyList = response
           
           if (this.isNewChat && this.messages.length > 0) {
             const firstUserMessage = this.messages.find(msg => msg.role === 'user')
             if (firstUserMessage) {
-              const latestItem = response.data[0]
+              const latestItem = response[0]
               if (latestItem) {
                 this.currentChatId = latestItem.id
                 this.isNewChat = false
@@ -497,24 +498,35 @@ export default {
     
     async handleDelete(chatId) {
       try {
+        // 1. 执行删除操作
         await deleteChatHistory(chatId)
         
-        const response = await getChatHistoryIds()
-        if (response.data.length === 0) {
-          this.historyList = [{ id: null, name: '新会话' }]
-          this.currentChatId = null
-          this.isNewChat = true
-          this.messages = []
-        } else {
-          this.historyList = response.data
-          if (this.currentChatId === chatId) {
-            this.currentChatId = response.data[0].id
-            this.isNewChat = false
-            await this.loadChatDetail(response.data[0].id)
-          }
-        }
+        // 2. 无论刷新是否成功，都先提示删除成功
         this.$message.success('删除成功')
+        
+        // 3. 尝试刷新历史列表
+        try {
+          const response = await getChatHistoryIds()
+          console.log('刷新历史列表响应:', response)
+          if (!response || response.length === 0) {
+            this.historyList = [{ id: null, name: '新会话' }]
+            this.currentChatId = null
+            this.isNewChat = true
+            this.messages = []
+          } else {
+            this.historyList = response
+            if (this.currentChatId === chatId) {
+              this.currentChatId = response[0].id
+              this.isNewChat = false
+              await this.loadChatDetail(response[0].id)
+            }
+          }
+        } catch (refreshError) {
+          console.error('刷新历史列表失败:', refreshError)
+          // 刷新失败不影响删除成功的提示
+        }
       } catch (error) {
+        // 只有删除操作本身失败时才提示删除失败
         this.$message.error('删除失败')
         console.error('删除聊天历史失败:', error)
       }

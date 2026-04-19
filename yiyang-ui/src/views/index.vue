@@ -237,10 +237,11 @@
       </div>
       <div class="quick-grid">
         <div 
-          v-for="item in quickAccessList" 
-          :key="item.route"
+          v-for="(item, index) in quickAccessList" 
+          :key="item.moduleKey + index"
           class="quick-item"
-          @click="$router.push(item.route)"
+          :class="{ 'disabled': item.disabled }"
+          @click="handleQuickAccessClick(item)"
         >
           <div class="quick-icon" :class="item.color">
             <i :class="item.icon"></i>
@@ -273,7 +274,11 @@ export default {
       // 快速入口
       quickAccessList: [],
       // 当前时间定时器
-      timeTimer: null
+      timeTimer: null,
+      // 路由缓存
+      routeCache: new Map(),
+      // 路由查找状态
+      routeLoading: false
     }
   },
   computed: {
@@ -336,24 +341,146 @@ export default {
 
     // 初始化快速入口
     initQuickAccess() {
-      const allQuickAccess = [
-        { label: '老人档案', icon: 'el-icon-user', route: '/elderly/elderly', color: 'blue', roles: ['admin', 'doctor', 'caregiver'] },
-        { label: '护理记录', icon: 'el-icon-first-aid-kit', route: '/careRecord/careRecord', color: 'green', roles: ['admin', 'doctor', 'caregiver'] },
-        { label: '用药记录', icon: 'el-icon-medicine-rack', route: '/medicationRecord/medicationRecord', color: 'orange', roles: ['admin', 'doctor', 'caregiver'] },
-        { label: '健康档案', icon: 'el-icon-document-checked', route: '/record/record', color: 'purple', roles: ['admin', 'doctor'] },
-        { label: '医嘱管理', icon: 'el-icon-document', route: '/medicalOrder/medicalOrder', color: 'red', roles: ['admin', 'doctor'] },
-        { label: '交班记录', icon: 'el-icon-refresh', route: '/handover/handover', color: 'cyan', roles: ['admin', 'doctor'] },
-        { label: '项目单', icon: 'el-icon-document-copy', route: '/projectOrder/projectOrder', color: 'pink', roles: ['admin', 'doctor', 'caregiver'] },
-        { label: '留言反馈', icon: 'el-icon-chat-dot-round', route: '/feedback/feedback', color: 'yellow', roles: ['admin', 'doctor', 'caregiver', 'family'] },
-        { label: '床位管理', icon: 'el-icon-office-building', route: '/room/room', color: 'indigo', roles: ['admin'] },
-        { label: '药品管理', icon: 'el-icon-box', route: '/medicine/medicine', color: 'teal', roles: ['admin', 'doctor'] },
-        { label: '服务项目管理', icon: 'el-icon-s-operation', route: '/serviceItem/serviceItem', color: 'lime', roles: ['admin'] },
-        { label: '用户管理', icon: 'el-icon-s-custom', route: '/system/user', color: 'gray', roles: ['admin'] }
+      // 从 store 中获取侧边栏路由
+      const sidebarRoutes = this.$store.getters.sidebarRouters || []
+      
+      console.log('=== 首页调试信息 ===')
+      console.log('当前用户角色:', this.roles)
+      console.log('侧边栏路由数量:', sidebarRoutes.length)
+      console.log('所有侧边栏路由:', sidebarRoutes)
+      
+      // 定义快速入口配置（图标、颜色等UI属性 + 模块标识）
+      const quickAccessConfig = [
+        { label: '老人档案', icon: 'el-icon-user', moduleKey: 'elderly', color: 'blue', roles: ['admin', 'doctor', 'caregiver'] },
+        { label: '护理记录', icon: 'el-icon-first-aid-kit', moduleKey: 'careRecord', color: 'green', roles: ['admin', 'doctor', 'caregiver'] },
+        { label: '用药记录', icon: 'el-icon-medicine-rack', moduleKey: 'medicationRecord', color: 'orange', roles: ['admin', 'doctor', 'caregiver'] },
+        { label: '健康档案', icon: 'el-icon-document-checked', moduleKey: 'record', color: 'purple', roles: ['admin', 'doctor'] },
+        { label: '医嘱管理', icon: 'el-icon-document', moduleKey: 'medicalOrder', color: 'red', roles: ['admin', 'doctor'] },
+        { label: '交班记录', icon: 'el-icon-refresh', moduleKey: 'handover', color: 'cyan', roles: ['admin', 'doctor'] },
+        { label: '项目单', icon: 'el-icon-document-copy', moduleKey: 'projectOrder', color: 'pink', roles: ['admin', 'doctor', 'caregiver'] },
+        { label: '留言反馈', icon: 'el-icon-chat-dot-round', moduleKey: 'feedback', color: 'yellow', roles: ['admin', 'doctor', 'caregiver', 'family'] },
+        { label: '床位管理', icon: 'el-icon-office-building', moduleKey: 'room', color: 'indigo', roles: ['admin'] },
+        { label: '药品管理', icon: 'el-icon-box', moduleKey: 'medicine', color: 'teal', roles: ['admin', 'doctor'] },
+        { label: '服务项目管理', icon: 'el-icon-s-operation', moduleKey: 'serviceItem', color: 'lime', roles: ['admin'] },
+        { label: '用户管理', icon: 'el-icon-s-custom', moduleKey: 'system/user', color: 'gray', roles: ['admin'] }
       ]
 
-      this.quickAccessList = allQuickAccess.filter(item => 
-        item.roles.some(role => this.roles.includes(role))
-      )
+      // 根据角色权限过滤，并从真实路由中获取路径
+      this.quickAccessList = quickAccessConfig
+        .filter(item => item.roles.some(role => this.roles.includes(role)))
+        .map(item => {
+          // 从真实路由中查找对应的路径（包括完整的层级路径）
+          const routeInfo = this.findRouteWithFullPath(item.moduleKey, sidebarRoutes)
+          console.log(`模块 [${item.label}] (key: ${item.moduleKey}):`, routeInfo ? `找到路由 -> ${routeInfo.fullPath}` : '❌ 未找到路由')
+          
+          return {
+            ...item,
+            route: routeInfo ? routeInfo.fullPath : null
+          }
+        })
+        .filter(item => item.route !== null) // 只保留找到路由的项
+      
+      console.log('最终快速入口列表:', this.quickAccessList)
+      console.log('==================')
+    },
+
+    // 根据模块key查找路由
+    findRouteByModuleKey(moduleKey, routes) {
+      // 检查缓存
+      if (this.routeCache.has(moduleKey)) {
+        console.log(`从缓存中获取路由: ${moduleKey}`)
+        return this.routeCache.get(moduleKey)
+      }
+      
+      try {
+        for (const route of routes) {
+          // 检查当前路由是否匹配
+          if (this.isRouteMatch(moduleKey, route)) {
+            // 缓存结果
+            this.routeCache.set(moduleKey, route)
+            console.log(`缓存路由: ${moduleKey} -> ${route.path}`)
+            return route
+          }
+          // 递归查找子路由
+          if (route.children && route.children.length > 0) {
+            const found = this.findRouteByModuleKey(moduleKey, route.children)
+            if (found) {
+              // 缓存结果
+              this.routeCache.set(moduleKey, found)
+              return found
+            }
+          }
+        }
+      } catch (error) {
+        console.error('路由查找错误:', error)
+      }
+      return null
+    },
+
+    // 查找路由并构建完整的层级路径
+    findRouteWithFullPath(moduleKey, routes, parentPath = '') {
+      try {
+        for (const route of routes) {
+          // 构建当前路由的完整路径
+          const currentPath = parentPath ? `${parentPath}/${route.path}` : route.path
+          
+          // 检查当前路由是否匹配
+          if (this.isRouteMatch(moduleKey, route)) {
+            console.log(`找到匹配路由: ${moduleKey} -> ${currentPath}`)
+            return {
+              route: route,
+              fullPath: currentPath
+            }
+          }
+          
+          // 递归查找子路由
+          if (route.children && route.children.length > 0) {
+            const found = this.findRouteWithFullPath(moduleKey, route.children, currentPath)
+            if (found) {
+              return found
+            }
+          }
+        }
+      } catch (error) {
+        console.error('查找路由完整路径错误:', error)
+      }
+      return null
+    },
+
+    // 判断路由是否匹配模块key
+    isRouteMatch(moduleKey, route) {
+      const path = route.path || ''
+      const name = (route.name || '').toLowerCase()
+      const metaTitle = (route.meta && route.meta.title) || ''
+      
+      // 多种匹配策略
+      const strategies = [
+        // 策略1: 路径完全匹配或路径以模块key结尾（更精确）
+        () => path === moduleKey || path.endsWith('/' + moduleKey),
+        // 策略2: 路由名称完全匹配或包含模块key
+        () => name === moduleKey.toLowerCase() || name.includes(moduleKey.toLowerCase()),
+        // 策略3: 标题包含模块key的中文映射
+        () => {
+          const titleMap = {
+            'elderly': '老人',
+            'careRecord': '护理',
+            'medicationRecord': '用药',
+            'record': '健康',
+            'medicalOrder': '医嘱',
+            'handover': '交班',
+            'projectOrder': '项目单',
+            'feedback': '留言',
+            'room': '床位',
+            'medicine': '药品',
+            'serviceItem': '服务项目',
+            'system/user': '用户'
+          }
+          const chineseKeyword = titleMap[moduleKey]
+          return chineseKeyword && metaTitle.includes(chineseKeyword)
+        }
+      ]
+      
+      return strategies.some(strategy => strategy())
     },
 
     // 获取建议图标
@@ -402,28 +529,121 @@ export default {
     },
 
     // 处理建议点击
-    handleSuggestionClick(suggestion) {
-      this.$message.info(`正在跳转到：${suggestion.action}`)
-      // 根据建议类型跳转到对应页面
-      const routeMap = {
-        task: '/careRecord/index',
-        health: '/record/index',
-        medical: '/medicalOrder/index',
-        handover: '/handover/index',
-        system: '/elderly/index',
-        general: '/dashboard/index'
-      }
-      if (routeMap[suggestion.type]) {
-        this.$router.push(routeMap[suggestion.type])
-      } else {
-        this.$message.warning('暂未开放')
+    async handleSuggestionClick(suggestion) {
+      try {
+        this.routeLoading = true
+        
+        // 根据建议类型跳转到对应页面
+        const moduleKeyMap = {
+          task: 'careRecord',
+          health: 'record',
+          medical: 'medicalOrder',
+          handover: 'handover',
+          system: 'elderly',
+          general: 'index'
+        }
+        
+        const moduleKey = moduleKeyMap[suggestion.type]
+        console.log(`智能助手建议点击 - 类型: ${suggestion.type}, 模块Key: ${moduleKey}`)
+        
+        if (moduleKey) {
+          if (moduleKey === 'index') {
+            console.log(`实际跳转URL: /index`)
+            this.$router.push('/index')
+          } else {
+            // 从真实路由中查找路径（包括完整的层级路径）
+            const sidebarRoutes = this.$store.getters.sidebarRouters || []
+            const routeInfo = this.findRouteWithFullPath(moduleKey, sidebarRoutes)
+            if (routeInfo) {
+              console.log(`找到路由: ${routeInfo.fullPath}`)
+              // 添加路由跳转动画提示
+              this.$message.success(`正在跳转到${suggestion.title}...`)
+              console.log(`实际跳转URL: ${routeInfo.fullPath}`)
+              this.$router.push(routeInfo.fullPath)
+            } else {
+              this.$message.warning('该功能暂未开放或您没有权限访问')
+            }
+          }
+        } else {
+          this.$message.warning('暂未开放')
+        }
+      } catch (error) {
+        console.error('建议点击错误:', error)
+        this.$message.error('跳转失败，请重试')
+      } finally {
+        this.routeLoading = false
       }
     },
 
     // 处理待办点击
-    handleTodoClick(todo) {
-      if (todo.route) {
-        this.$router.push(todo.route)
+    async handleTodoClick(todo) {
+      try {
+        this.routeLoading = true
+        
+        console.log(`待办事项点击 - 标题: ${todo.title}, 类型: ${todo.type}, 路由: ${todo.route}`)
+        
+        // 如果待办已经有route字段，直接使用
+        if (todo.route) {
+          console.log(`实际跳转URL: ${todo.route}`)
+          this.$message.success(`正在处理${todo.title}...`)
+          this.$router.push(todo.route)
+        } else if (todo.type) {
+          // 否则根据type查找对应的路由
+          const moduleKeyMap = {
+            care: 'careRecord',
+            medication: 'medicationRecord',
+            handover: 'handover',
+            projectOrder: 'projectOrder',
+            feedback: 'feedback'
+          }
+          
+          const moduleKey = moduleKeyMap[todo.type]
+          console.log(`待办类型映射 - 类型: ${todo.type}, 模块Key: ${moduleKey}`)
+          
+          if (moduleKey) {
+            const sidebarRoutes = this.$store.getters.sidebarRouters || []
+            const routeInfo = this.findRouteWithFullPath(moduleKey, sidebarRoutes)
+            if (routeInfo) {
+              console.log(`找到路由: ${routeInfo.fullPath}`)
+              this.$message.success(`正在处理${todo.title}...`)
+              console.log(`实际跳转URL: ${routeInfo.fullPath}`)
+              this.$router.push(routeInfo.fullPath)
+            } else {
+              this.$message.warning('该功能暂未开放或您没有权限访问')
+            }
+          } else {
+            this.$message.warning('暂未开放')
+          }
+        }
+      } catch (error) {
+        console.error('待办点击错误:', error)
+        this.$message.error('跳转失败，请重试')
+      } finally {
+        this.routeLoading = false
+      }
+    },
+
+    // 处理快速入口点击
+    async handleQuickAccessClick(item) {
+      try {
+        if (item.disabled) return
+        
+        this.routeLoading = true
+        
+        if (item.route) {
+          console.log(`快速入口点击 - 模块: ${item.label}, 路由: ${item.route}`)
+          this.$message.success(`正在跳转到${item.label}...`)
+          // 使用与侧边栏一致的路由跳转方式
+          console.log(`实际跳转URL: ${item.route}`)
+          this.$router.push(item.route)
+        } else {
+          this.$message.warning('该功能暂未开放')
+        }
+      } catch (error) {
+        console.error('快速入口点击错误:', error)
+        this.$message.error('跳转失败，请重试')
+      } finally {
+        this.routeLoading = false
       }
     }
   }
@@ -858,7 +1078,7 @@ export default {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 16px;
-
+  
     .quick-item {
       display: flex;
       flex-direction: column;
@@ -868,10 +1088,20 @@ export default {
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.3s ease;
-
+  
       &:hover {
         transform: translateY(-4px);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+  
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+            
+        &:hover {
+          transform: none;
+          box-shadow: none;
+        }
       }
 
       .quick-icon {

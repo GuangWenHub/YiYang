@@ -1,5 +1,6 @@
 package com.yiyang.ai.controller;
 
+import com.yiyang.common.annotation.Anonymous;
 import com.yiyang.common.core.domain.AjaxResult;
 import com.yiyang.elderly.domain.Elderly;
 import com.yiyang.elderly.service.IElderlyService;
@@ -39,6 +40,7 @@ import java.util.Map;
  * @date 2026-04-13
  */
 @RestController
+@Anonymous
 @RequestMapping("/dify/serve")
 public class DifyServeController {
 
