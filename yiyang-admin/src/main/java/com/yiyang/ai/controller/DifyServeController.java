@@ -1,7 +1,7 @@
 package com.yiyang.ai.controller;
 
-import com.yiyang.common.annotation.Anonymous;
 import com.yiyang.common.core.domain.AjaxResult;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.yiyang.elderly.domain.Elderly;
 import com.yiyang.elderly.service.IElderlyService;
 import com.yiyang.room.domain.Room;
@@ -21,6 +21,8 @@ import com.yiyang.medicationRecord.domain.MedicationRecord;
 import com.yiyang.medicationRecord.service.IMedicationRecordService;
 import com.yiyang.careRecord.domain.CareRecord;
 import com.yiyang.careRecord.service.ICareRecordService;
+import com.yiyang.medicalOrder.domain.MedicalOrder;
+import com.yiyang.medicalOrder.service.IMedicalOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +43,6 @@ import java.util.Map;
  * @date 2026-04-13
  */
 @RestController
-@Anonymous
 @RequestMapping("/dify/serve")
 public class DifyServeController {
 
@@ -69,6 +71,9 @@ public class DifyServeController {
     private IMedicationRecordService medicationRecordService;
 
     @Autowired
+    private IMedicalOrderService medicalOrderService;
+
+    @Autowired
     private ICareRecordService careRecordService;
 
     /**
@@ -77,11 +82,11 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 老人信息
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:elder')")
     @GetMapping("/elder")
     public AjaxResult getElder(Long elderlyId) {
         if (elderlyId == null) {
-            List<Elderly> elders = elderlyService.selectElderlyList(new Elderly());
-            return AjaxResult.success(elders);
+            return AjaxResult.error("请提供老人 ID");
         }
         Elderly elder = elderlyService.selectElderlyByElderlyId(elderlyId);
         return AjaxResult.success(elder);
@@ -93,11 +98,11 @@ public class DifyServeController {
      * @param roomId 房间 ID
      * @return 房间信息
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:room')")
     @GetMapping("/room")
     public AjaxResult getRoom(Long roomId) {
         if (roomId == null) {
-            List<Room> rooms = roomService.selectRoomList(new Room());
-            return AjaxResult.success(rooms);
+            return AjaxResult.error("请提供房间 ID");
         }
         Room room = roomService.selectRoomByRoomId(roomId);
         return AjaxResult.success(room);
@@ -107,16 +112,35 @@ public class DifyServeController {
      * 查询健康档案记录
      * 
      * @param elderlyId 老人 ID
-     * @return 健康档案记录列表
+     * @return 健康档案记录列表（只返回必要字段）
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:record')")
     @GetMapping("/record")
     public AjaxResult getHealthRecord(Long elderlyId) {
-        HealthRecord record = new HealthRecord();
-        if (elderlyId != null) {
-            record.setElderlyId(elderlyId);
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
         }
+        HealthRecord record = new HealthRecord();
+        record.setElderlyId(elderlyId);
         List<HealthRecord> records = healthRecordService.selectHealthRecordList(record);
-        return AjaxResult.success(records);
+        
+        // 转换为只包含必要字段的Map列表
+        List<Map<String, Object>> result = records.stream().map(r -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("recordId", r.getRecordId());
+            map.put("elderlyId", r.getElderlyId());
+            map.put("elderlyName", r.getElderlyName());
+            map.put("recordTime", r.getRecordTime());
+            map.put("bloodPressure", r.getBloodPressure());
+            map.put("heartRate", r.getHeartRate());
+            map.put("temperature", r.getTemperature());
+            map.put("bloodSugar", r.getBloodSugar());
+            map.put("symptomDesc", r.getSymptomDesc());
+            map.put("remark", r.getRemark());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+        
+        return AjaxResult.success(result);
     }
 
     /**
@@ -125,12 +149,14 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 查房记录列表
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:round')")
     @GetMapping("/round")
     public AjaxResult getWardRound(Long elderlyId) {
-        SysWardRound wardRound = new SysWardRound();
-        if (elderlyId != null) {
-            wardRound.setElderlyId(elderlyId);
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
         }
+        SysWardRound wardRound = new SysWardRound();
+        wardRound.setElderlyId(elderlyId);
         List<SysWardRound> rounds = wardRoundService.selectSysWardRoundList(wardRound);
         return AjaxResult.success(rounds);
     }
@@ -141,13 +167,11 @@ public class DifyServeController {
      * @param medicineId 药品 ID
      * @return 药品信息
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:medicine')")
     @GetMapping("/medicine")
     public AjaxResult getMedicine(Long medicineId) {
         if (medicineId == null) {
-            Medicine medicine = new Medicine();
-            medicine.setStatus("0");
-            List<Medicine> medicines = medicineService.selectMedicineList(medicine);
-            return AjaxResult.success(medicines);
+            return AjaxResult.error("请提供药品 ID");
         }
         Medicine medicine = medicineService.selectMedicineByMedicineId(medicineId);
         return AjaxResult.success(medicine);
@@ -159,14 +183,16 @@ public class DifyServeController {
      * @param date 日期（yyyy-MM-dd 格式）
      * @return 交班记录列表
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:handover')")
     @GetMapping("/handover")
     public AjaxResult getHandover(String date) {
-        DoctorHandover handover = new DoctorHandover();
-        if (date != null && !date.isEmpty()) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate localDate = LocalDate.parse(date, formatter);
-            handover.setStartTime(java.sql.Date.valueOf(localDate));
+        if (date == null || date.isEmpty()) {
+            return AjaxResult.error("请提供日期");
         }
+        DoctorHandover handover = new DoctorHandover();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(date, formatter);
+        handover.setStartTime(java.sql.Date.valueOf(localDate));
         List<DoctorHandover> handovers = handoverService.selectDoctorHandoverList(handover);
         return AjaxResult.success(handovers);
     }
@@ -177,11 +203,11 @@ public class DifyServeController {
      * @param orderId 项目单 ID
      * @return 项目单明细列表
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:detail')")
     @GetMapping("/detail")
     public AjaxResult getDetail(Long orderId) {
         if (orderId == null) {
-            List<ProjectOrderDetail> details = projectOrderDetailService.selectProjectOrderDetailList(new ProjectOrderDetail());
-            return AjaxResult.success(details);
+            return AjaxResult.error("请提供项目单 ID");
         }
         List<ProjectOrderDetail> details = projectOrderDetailService.selectProjectOrderDetailListByOrderId(orderId);
         return AjaxResult.success(details);
@@ -193,14 +219,31 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 用药记录列表
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:medicationRecord')")
     @GetMapping("/medicationRecord")
     public AjaxResult getMedicationRecord(Long elderlyId) {
-        MedicationRecord record = new MedicationRecord();
-        if (elderlyId != null) {
-            // 需要通过 orderId 关联查询，这里先返回所有记录
-            // 实际使用时可以根据业务需求优化查询逻辑
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
         }
-        List<MedicationRecord> records = medicationRecordService.selectMedicationRecordList(record);
+        // 先查询该老人的所有医嘱
+        MedicalOrder order = new MedicalOrder();
+        order.setElderlyId(elderlyId);
+        List<MedicalOrder> orders = medicalOrderService.selectMedicalOrderList(order);
+        
+        // 收集所有医嘱ID
+        List<Long> orderIds = orders.stream()
+                .map(MedicalOrder::getOrderId)
+                .collect(java.util.stream.Collectors.toList());
+        
+        // 根据医嘱ID查询用药记录
+        List<MedicationRecord> records = new ArrayList<>();
+        if (!orderIds.isEmpty()) {
+            for (Long orderId : orderIds) {
+                MedicationRecord record = new MedicationRecord();
+                record.setOrderId(orderId);
+                records.addAll(medicationRecordService.selectMedicationRecordList(record));
+            }
+        }
         return AjaxResult.success(records);
     }
 
@@ -210,12 +253,14 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 生活照料记录列表
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:careRecord')")
     @GetMapping("/careRecord")
     public AjaxResult getCareRecord(Long elderlyId) {
-        CareRecord record = new CareRecord();
-        if (elderlyId != null) {
-            record.setElderlyId(elderlyId);
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
         }
+        CareRecord record = new CareRecord();
+        record.setElderlyId(elderlyId);
         List<CareRecord> records = careRecordService.selectCareRecordList(record);
         return AjaxResult.success(records);
     }
@@ -226,61 +271,106 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 所有模块的数据
      */
+    @PreAuthorize("@ss.hasPermi('ai:dify:all')")
     @GetMapping("/all")
     public AjaxResult getAllData(Long elderlyId) {
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
+        }
         Map<String, Object> result = new HashMap<>();
 
         // 查询老人信息
-        if (elderlyId != null) {
-            Elderly elder = elderlyService.selectElderlyByElderlyId(elderlyId);
-            result.put("elder", elder);
+        Elderly elder = elderlyService.selectElderlyByElderlyId(elderlyId);
+        result.put("elder", elder);
 
-            // 查询床位信息
-            Bed bed = roomService.selectBedByElderlyId(elderlyId);
-            result.put("bed", bed);
-        } else {
-            result.put("elder", elderlyService.selectElderlyList(new Elderly()));
-        }
+        // 查询床位信息
+        Bed bed = roomService.selectBedByElderlyId(elderlyId);
+        result.put("bed", bed);
 
         // 查询房间信息
-        result.put("room", roomService.selectRoomList(new Room()));
+        if (bed != null) {
+            Room room = roomService.selectRoomByRoomId(bed.getRoomId());
+            result.put("room", room);
+        }
 
         // 查询健康档案记录
         HealthRecord recordParam = new HealthRecord();
-        if (elderlyId != null) {
-            recordParam.setElderlyId(elderlyId);
-        }
-        result.put("record", healthRecordService.selectHealthRecordList(recordParam));
+        recordParam.setElderlyId(elderlyId);
+        List<HealthRecord> healthRecords = healthRecordService.selectHealthRecordList(recordParam);
+        
+        // 转换为只包含必要字段的Map列表
+        List<Map<String, Object>> recordResult = healthRecords.stream().map(r -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("recordId", r.getRecordId());
+            map.put("elderlyId", r.getElderlyId());
+            map.put("elderlyName", r.getElderlyName());
+            map.put("recordTime", r.getRecordTime());
+            map.put("bloodPressure", r.getBloodPressure());
+            map.put("heartRate", r.getHeartRate());
+            map.put("temperature", r.getTemperature());
+            map.put("bloodSugar", r.getBloodSugar());
+            map.put("symptomDesc", r.getSymptomDesc());
+            map.put("remark", r.getRemark());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+        
+        result.put("record", recordResult);
 
         // 查询查房记录
         SysWardRound roundParam = new SysWardRound();
-        if (elderlyId != null) {
-            roundParam.setElderlyId(elderlyId);
-        }
+        roundParam.setElderlyId(elderlyId);
         result.put("round", wardRoundService.selectSysWardRoundList(roundParam));
 
-        // 查询药品信息
-        Medicine medicineParam = new Medicine();
-        medicineParam.setStatus("0");
-        result.put("medicine", medicineService.selectMedicineList(medicineParam));
-
-        // 查询交班记录
-        result.put("handover", handoverService.selectDoctorHandoverList(new DoctorHandover()));
-
-        // 查询项目单明细
-        result.put("detail", projectOrderDetailService.selectProjectOrderDetailList(new ProjectOrderDetail()));
-
         // 查询用药记录
-        MedicationRecord medicationRecordParam = new MedicationRecord();
-        result.put("medicationRecord", medicationRecordService.selectMedicationRecordList(medicationRecordParam));
+        // 先查询该老人的所有医嘱
+        MedicalOrder order = new MedicalOrder();
+        order.setElderlyId(elderlyId);
+        List<MedicalOrder> orders = medicalOrderService.selectMedicalOrderList(order);
+        
+        // 收集所有医嘱ID
+        List<Long> orderIds = orders.stream()
+                .map(MedicalOrder::getOrderId)
+                .collect(java.util.stream.Collectors.toList());
+        
+        // 根据医嘱ID查询用药记录
+        List<MedicationRecord> medicationRecords = new ArrayList<>();
+        if (!orderIds.isEmpty()) {
+            for (Long orderId : orderIds) {
+                MedicationRecord record = new MedicationRecord();
+                record.setOrderId(orderId);
+                medicationRecords.addAll(medicationRecordService.selectMedicationRecordList(record));
+            }
+        }
+        result.put("medicationRecord", medicationRecords);
 
         // 查询生活照料记录
         CareRecord careRecordParam = new CareRecord();
-        if (elderlyId != null) {
-            careRecordParam.setElderlyId(elderlyId);
-        }
+        careRecordParam.setElderlyId(elderlyId);
         result.put("careRecord", careRecordService.selectCareRecordList(careRecordParam));
 
         return AjaxResult.success(result);
+    }
+
+    /**
+     * 通过模糊查找老人姓名
+     * 
+     * @param name 老人姓名（支持模糊查询）
+     * @return 老人信息列表，包含老人ID及其他数据
+     */
+    @PreAuthorize("@ss.hasPermi('ai:dify:elder:search')")
+    @GetMapping("/elder/search")
+    public AjaxResult searchElderByName(String name) {
+        if (name == null || name.isEmpty()) {
+            return AjaxResult.error("请提供老人姓名");
+        }
+        
+        // 构建查询条件
+        Elderly elderly = new Elderly();
+        elderly.setName(name);
+        
+        // 执行模糊查询
+        List<Elderly> elders = elderlyService.selectElderlyList(elderly);
+        
+        return AjaxResult.success(elders);
     }
 }

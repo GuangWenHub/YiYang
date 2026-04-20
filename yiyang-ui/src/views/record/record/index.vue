@@ -12,8 +12,8 @@
       <el-form-item label="记录时间" prop="recordTime">
         <el-date-picker clearable
           v-model="queryParams.recordTime"
-          type="date"
-          value-format="yyyy-MM-dd"
+          type="datetime"
+          value-format="yyyy-MM-dd HH:mm:ss"
           placeholder="请选择记录时间">
         </el-date-picker>
       </el-form-item>
@@ -74,9 +74,9 @@
       <el-table-column label="健康记录ID" align="center" prop="recordId" />
       <el-table-column label="老人ID" align="center" prop="elderlyId" />
       <el-table-column label="老人姓名" align="center" prop="elderlyName" />
-      <el-table-column label="记录时间" align="center" prop="recordTime" width="180">
+      <el-table-column label="记录时间" align="center" prop="recordTime" width="220">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.recordTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="血压" align="center" prop="bloodPressure" />

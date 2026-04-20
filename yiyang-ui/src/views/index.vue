@@ -256,6 +256,7 @@
 <script>
 import { getStatistics, getTodoList, getAiAssistantData } from '@/api/dashboard/dashboard'
 import { mapGetters } from 'vuex'
+import path from 'path'
 
 export default {
   name: 'Dashboard',
@@ -421,8 +422,10 @@ export default {
     findRouteWithFullPath(moduleKey, routes, parentPath = '') {
       try {
         for (const route of routes) {
-          // 构建当前路由的完整路径
-          const currentPath = parentPath ? `${parentPath}/${route.path}` : route.path
+          // 构建当前路由的完整路径，使用path.resolve，与侧边栏保持一致
+          const currentPath = parentPath ? path.resolve(parentPath, route.path) : route.path
+          
+          console.log(`检查路由 - 模块: ${moduleKey}, 路径: ${currentPath}, 父路径: ${parentPath}`)
           
           // 检查当前路由是否匹配
           if (this.isRouteMatch(moduleKey, route)) {
@@ -449,17 +452,21 @@ export default {
 
     // 判断路由是否匹配模块key
     isRouteMatch(moduleKey, route) {
-      const path = route.path || ''
-      const name = (route.name || '').toLowerCase()
+      const routePath = route.path || ''
+      const routeName = (route.name || '').toLowerCase()
       const metaTitle = (route.meta && route.meta.title) || ''
+      
+      console.log(`路由匹配检查 - 模块: ${moduleKey}, 路由路径: ${routePath}, 路由名称: ${routeName}, 标题: ${metaTitle}`)
       
       // 多种匹配策略
       const strategies = [
-        // 策略1: 路径完全匹配或路径以模块key结尾（更精确）
-        () => path === moduleKey || path.endsWith('/' + moduleKey),
-        // 策略2: 路由名称完全匹配或包含模块key
-        () => name === moduleKey.toLowerCase() || name.includes(moduleKey.toLowerCase()),
-        // 策略3: 标题包含模块key的中文映射
+        // 策略1: 路径完全匹配
+        () => routePath === moduleKey,
+        // 策略2: 路径包含模块key（更宽松的匹配）
+        () => routePath.includes(moduleKey),
+        // 策略3: 路由名称匹配
+        () => routeName.includes(moduleKey.toLowerCase()),
+        // 策略4: 标题包含模块key的中文映射
         () => {
           const titleMap = {
             'elderly': '老人',
@@ -480,7 +487,9 @@ export default {
         }
       ]
       
-      return strategies.some(strategy => strategy())
+      const isMatch = strategies.some(strategy => strategy())
+      console.log(`路由匹配结果 - ${isMatch ? '匹配成功' : '匹配失败'}: ${moduleKey}`)
+      return isMatch
     },
 
     // 获取建议图标
@@ -582,7 +591,7 @@ export default {
         
         console.log(`待办事项点击 - 标题: ${todo.title}, 类型: ${todo.type}, 路由: ${todo.route}`)
         
-        // 如果待办已经有route字段，直接使用
+        // 如果待办已经有route字段,直接使用
         if (todo.route) {
           console.log(`实际跳转URL: ${todo.route}`)
           this.$message.success(`正在处理${todo.title}...`)

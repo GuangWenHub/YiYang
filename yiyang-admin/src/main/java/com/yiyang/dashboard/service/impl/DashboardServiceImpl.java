@@ -136,7 +136,6 @@ public class DashboardServiceImpl implements IDashboardService {
             careTodo.setTitle("待执行的护理任务");
             careTodo.setDescription("您有" + dashboardMapper.selectPendingCareCount(userId, true) + "个待执行的护理任务");
             careTodo.setPriority("high");
-            careTodo.setRoute("/careRecord/careRecord");
             todoList.add(careTodo);
             
             TodoItem medicationTodo = new TodoItem();
@@ -146,7 +145,6 @@ public class DashboardServiceImpl implements IDashboardService {
             medicationTodo.setTitle("待执行的用药任务");
             medicationTodo.setDescription("您有" + dashboardMapper.selectPendingMedicationCount(userId, true) + "个待执行的用药任务");
             medicationTodo.setPriority("high");
-            medicationTodo.setRoute("/medicationRecord/medicationRecord");
             todoList.add(medicationTodo);
         }
         
@@ -161,7 +159,6 @@ public class DashboardServiceImpl implements IDashboardService {
                 handoverTodo.setTitle("待处理的交班记录");
                 handoverTodo.setDescription("您有" + pendingHandover + "条待处理的交班记录");
                 handoverTodo.setPriority("medium");
-                handoverTodo.setRoute("/handover/handover");
                 todoList.add(handoverTodo);
             }
             
@@ -174,7 +171,6 @@ public class DashboardServiceImpl implements IDashboardService {
                 orderTodo.setTitle("待审核的项目单");
                 orderTodo.setDescription("您有" + pendingOrders + "个项目单待审核");
                 orderTodo.setPriority("medium");
-                orderTodo.setRoute("/projectOrder/projectOrder");
                 todoList.add(orderTodo);
             }
         }
@@ -189,7 +185,6 @@ public class DashboardServiceImpl implements IDashboardService {
             feedbackTodo.setTitle("未读留言");
             feedbackTodo.setDescription("您有" + unreadFeedback + "条未读留言");
             feedbackTodo.setPriority("low");
-            feedbackTodo.setRoute("/feedback/feedback");
             todoList.add(feedbackTodo);
         }
         

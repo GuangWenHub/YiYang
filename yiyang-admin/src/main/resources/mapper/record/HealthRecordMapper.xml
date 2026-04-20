@@ -33,9 +33,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectHealthRecordList" parameterType="HealthRecord" resultMap="HealthRecordResult">
         <include refid="selectHealthRecordVo"/>
         <where>  
-            <if test="elderlyId != null "> and elderly_id = #{elderlyId}</if>
-            <if test="recordTime != null "> and record_time = #{recordTime}</if>
-            <if test="symptomDesc != null  and symptomDesc != ''"> and symptom_desc = #{symptomDesc}</if>
+            <if test="elderlyId != null "> and hr.elderly_id = #{elderlyId}</if>
+            <if test="recordTime != null "> and hr.record_time = #{recordTime}</if>
+            <if test="symptomDesc != null  and symptomDesc != ''"> and hr.symptom_desc = #{symptomDesc}</if>
         </where>
     </select>
     
