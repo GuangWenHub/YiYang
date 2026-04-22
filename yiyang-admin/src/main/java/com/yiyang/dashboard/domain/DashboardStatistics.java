@@ -53,6 +53,18 @@ public class DashboardStatistics implements Serializable {
     /** 总床位数 */
     private Long totalBedCount;
 
+    /** 超时的生活照料任务数 */
+    private Long timeoutCareCount;
+
+    /** 生活照料异常记录数 */
+    private Long abnormalCareCount;
+
+    /** 超时的用药任务数 */
+    private Long timeoutMedicationCount;
+
+    /** 用药异常记录数 */
+    private Long abnormalMedicationCount;
+
     // Getters and Setters
     public Long getElderlyCount() {
         return elderlyCount;
@@ -164,5 +176,37 @@ public class DashboardStatistics implements Serializable {
 
     public void setTotalBedCount(Long totalBedCount) {
         this.totalBedCount = totalBedCount;
+    }
+
+    public Long getTimeoutCareCount() {
+        return timeoutCareCount;
+    }
+
+    public void setTimeoutCareCount(Long timeoutCareCount) {
+        this.timeoutCareCount = timeoutCareCount;
+    }
+
+    public Long getAbnormalCareCount() {
+        return abnormalCareCount;
+    }
+
+    public void setAbnormalCareCount(Long abnormalCareCount) {
+        this.abnormalCareCount = abnormalCareCount;
+    }
+
+    public Long getTimeoutMedicationCount() {
+        return timeoutMedicationCount;
+    }
+
+    public void setTimeoutMedicationCount(Long timeoutMedicationCount) {
+        this.timeoutMedicationCount = timeoutMedicationCount;
+    }
+
+    public Long getAbnormalMedicationCount() {
+        return abnormalMedicationCount;
+    }
+
+    public void setAbnormalMedicationCount(Long abnormalMedicationCount) {
+        this.abnormalMedicationCount = abnormalMedicationCount;
     }
 }

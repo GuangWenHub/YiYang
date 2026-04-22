@@ -237,7 +237,7 @@ export default {
     getList() {
       this.loading = true
       listMedicationRecord(this.queryParams).then(response => {
-        this.medicationRecordList = response.rows
+        this.medicationRecordList = response.rows.reverse()
         this.total = response.total
         // 检查是否有超时任务
         this.checkTimeoutTasks()

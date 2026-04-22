@@ -381,8 +381,8 @@ export default {
     getList() {
       this.loading = true
       listProjectOrder(this.queryParams).then(response => {
-        let list = response.rows
-        // 如果是admin2（普通管理员），过滤掉草稿状态的项目单
+        let list = response.rows.reverse()
+        // 如果是admin2(普通管理员),过滤掉草稿状态的项目单
         if (this.isAdmin2) {
           list = list.filter(item => item.status !== 0)
         }

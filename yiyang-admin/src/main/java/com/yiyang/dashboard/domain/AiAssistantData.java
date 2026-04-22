@@ -42,6 +42,9 @@ public class AiAssistantData implements Serializable {
         /** 相关操作 */
         private String action;
 
+        /** 路由标识 */
+        private String routeKey;
+
         // Getters and Setters
         public String getType() {
             return type;
@@ -73,6 +76,14 @@ public class AiAssistantData implements Serializable {
 
         public void setAction(String action) {
             this.action = action;
+        }
+
+        public String getRouteKey() {
+            return routeKey;
+        }
+
+        public void setRouteKey(String routeKey) {
+            this.routeKey = routeKey;
         }
     }
 

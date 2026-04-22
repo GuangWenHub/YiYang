@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
@@ -27,16 +28,18 @@ public class AiController {
      */
     @ApiOperation("发送聊天消息")
     @PostMapping(value = "/chat", produces = "text/event-stream")
-    public void chat(@RequestBody Map<String, Object> requestBody, HttpServletResponse response) throws IOException {
+    public void chat(@RequestBody Map<String, Object> requestBody, HttpServletRequest request, HttpServletResponse response) throws IOException {
         System.out.println("========================================");
         System.out.println("1. 收到前端请求，请求体：" + requestBody);
         String prompt = (String) requestBody.get("prompt");
         String chatId = (String) requestBody.get("chatId");
         String userRole = (String) requestBody.get("userRole");
         String userName = (String) requestBody.get("userName");
+        String jwtToken = request.getHeader("Authorization");
         System.out.println("2. 提取参数，prompt: " + prompt + ", chatId: " + chatId + ", userRole: " + userRole + ", userName: " + userName);
+        System.out.println("2.1 获取 JWT Token: " + jwtToken);
         System.out.println("========================================");
-        aiService.sendChatMessage(prompt, chatId, userRole, userName, response);
+        aiService.sendChatMessage(prompt, chatId, userRole, userName, jwtToken, response);
         System.out.println("6. 处理请求完成");
     }
 

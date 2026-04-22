@@ -37,6 +37,22 @@
         </if>
     </select>
 
+    <!-- 获取今日所有待执行护理任务数（管理员查看所有） -->
+    <select id="selectTodayAllPendingCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '0'
+        AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{today}
+    </select>
+
+    <!-- 获取今日所有已完成护理任务数（管理员查看所有） -->
+    <select id="selectTodayAllCompletedCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '1'
+        AND DATE_FORMAT(update_time, '%Y-%m-%d') = #{today}
+    </select>
+
     <!-- 获取待执行用药任务数 -->
     <select id="selectPendingMedicationCount" resultType="java.lang.Long">
         SELECT COUNT(*) FROM medication_record
@@ -56,6 +72,22 @@
         <if test="isCaregiver">
             AND nurse_id = #{userId}
         </if>
+    </select>
+
+    <!-- 获取今日所有待执行用药任务数（管理员查看所有） -->
+    <select id="selectTodayAllPendingMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '0'
+        AND DATE_FORMAT(create_time, '%Y-%m-%d') = #{today}
+    </select>
+
+    <!-- 获取今日所有已完成用药任务数（管理员查看所有） -->
+    <select id="selectTodayAllCompletedMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '1'
+        AND DATE_FORMAT(update_time, '%Y-%m-%d') = #{today}
     </select>
 
     <!-- 获取待审核项目单数 -->
@@ -104,7 +136,77 @@
 
     <!-- 获取空闲床位数 -->
     <select id="selectFreeBedCount" resultType="java.lang.Long">
-        SELECT COUNT(*) FROM bed WHERE del_flag = 0 AND status = 0
+        SELECT COUNT(*) FROM bed
+        WHERE del_flag = '0'
+        AND status = 0
+    </select>
+
+    <!-- 获取超时的生活照料任务数（status='3'表示超时） -->
+    <select id="selectTimeoutCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '3'
+        <if test="isCaregiver">
+            AND creator_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取生活照料异常记录数 -->
+    <select id="selectAbnormalCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '2'
+        <if test="isCaregiver">
+            AND creator_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取所有超时的生活照料任务数（管理员查看所有） -->
+    <select id="selectAllTimeoutCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '3'
+    </select>
+
+    <!-- 获取所有生活照料异常记录数（管理员查看所有） -->
+    <select id="selectAllAbnormalCareCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM care_record
+        WHERE del_flag = '0'
+        AND status = '2'
+    </select>
+
+    <!-- 获取超时的用药任务数（status='3'表示超时） -->
+    <select id="selectTimeoutMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '3'
+        <if test="isCaregiver">
+            AND nurse_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取用药异常记录数 -->
+    <select id="selectAbnormalMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '2'
+        <if test="isCaregiver">
+            AND nurse_id = #{userId}
+        </if>
+    </select>
+
+    <!-- 获取所有超时的用药任务数（管理员查看所有） -->
+    <select id="selectAllTimeoutMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '3'
+    </select>
+
+    <!-- 获取所有用药异常记录数（管理员查看所有） -->
+    <select id="selectAllAbnormalMedicationCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM medication_record
+        WHERE del_flag = '0'
+        AND status = '2'
     </select>
 
 </mapper>

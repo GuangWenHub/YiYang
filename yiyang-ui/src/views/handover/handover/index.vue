@@ -306,7 +306,7 @@ export default {
     getList() {
       this.loading = true
       listHandover(this.queryParams).then(response => {
-        this.handoverList = response.rows
+        this.handoverList = response.rows.reverse()
         this.total = response.total
         this.loading = false
       })

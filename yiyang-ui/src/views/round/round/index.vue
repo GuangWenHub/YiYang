@@ -274,7 +274,7 @@ export default {
     getList() {
       this.loading = true
       listRound(this.queryParams).then(response => {
-        this.roundList = response.rows
+        this.roundList = response.rows.reverse()
         this.total = response.total
         this.loading = false
       })

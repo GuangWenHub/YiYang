@@ -220,7 +220,7 @@ export default {
     getList() {
       this.loading = true
       listRecord(this.queryParams).then(response => {
-        this.recordList = response.rows
+        this.recordList = response.rows.reverse()
         this.total = response.total
         this.loading = false
       })

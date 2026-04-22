@@ -23,7 +23,7 @@
           <i class="el-icon-s-opportunity"></i>
         </div>
         <div class="ai-title">
-          <span class="ai-name">智能助手 Jarvis</span>
+          <span class="ai-name">工作建议</span>
           <span class="ai-status">
             <span class="status-dot"></span>
             在线
@@ -49,42 +49,6 @@
       </div>
     </div>
 
-    <!-- 待办事项区域 -->
-    <div class="todo-section" v-if="todoList.length > 0">
-      <div class="section-header">
-        <h3>
-          <i class="el-icon-bell"></i>
-          今日待办
-          <el-badge :value="todoList.length" class="todo-badge" />
-        </h3>
-      </div>
-      <div class="todo-list">
-        <div 
-          v-for="todo in todoList" 
-          :key="todo.id"
-          class="todo-item"
-          :class="todo.priority"
-          @click="handleTodoClick(todo)"
-        >
-          <div class="todo-icon">
-            <i :class="getTodoIcon(todo.type)"></i>
-          </div>
-          <div class="todo-info">
-            <div class="todo-title">{{ todo.title }}</div>
-            <div class="todo-desc">{{ todo.description }}</div>
-          </div>
-          <div class="todo-priority">
-            <el-tag :type="getPriorityType(todo.priority)" size="small">
-              {{ getPriorityText(todo.priority) }}
-            </el-tag>
-          </div>
-          <div class="todo-arrow">
-            <i class="el-icon-arrow-right"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 统计数据区域 -->
     <div class="statistics-section">
       <div class="section-header">
@@ -95,7 +59,7 @@
       </div>
       <div class="stats-grid">
         <!-- 老人统计 -->
-        <template v-if="hasRole(['admin', 'doctor'])">
+        <template v-if="hasRole(['admin', 'admin2', 'doctor', 'caregiver'])">
           <div class="stat-card">
             <div class="stat-icon elderly">
               <i class="el-icon-user-solid"></i>
@@ -111,22 +75,24 @@
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ statistics.todayElderlyCount || 0 }}</div>
-              <div class="stat-label">今日新增</div>
+              <div class="stat-label">今日新增老人</div>
             </div>
           </div>
         </template>
 
-        <!-- 护理任务统计 -->
-        <template v-if="hasRole(['caregiver', 'doctor', 'admin'])">
+        <!-- 护理任务统计（管理员/管理员2：查看今日全部） -->
+        <template v-if="hasRole(['caregiver'])">
           <div class="stat-card">
             <div class="stat-icon pending-care">
               <i class="el-icon-first-aid-kit"></i>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ statistics.pendingCareCount || 0 }}</div>
-              <div class="stat-label">待执行护理</div>
+              <div class="stat-label">今日待执行护理</div>
             </div>
           </div>
+        </template>
+          <template v-if="hasRole(['admin', 'admin2'])">
           <div class="stat-card">
             <div class="stat-icon completed-care">
               <i class="el-icon-circle-check"></i>
@@ -138,8 +104,56 @@
           </div>
         </template>
 
-        <!-- 用药任务统计 -->
-        <template v-if="hasRole(['caregiver', 'doctor', 'admin'])">
+        <!-- 护理任务统计（护工：查看自己的）管理员/管理员2：查看今日全部） -->
+        <template v-if="hasRole(['caregiver'])">
+          <div class="stat-card">
+            <div class="stat-icon pending-care">
+              <i class="el-icon-first-aid-kit"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.pendingCareCount || 0 }}</div>
+              <div class="stat-label">待执行护理</div>
+            </div>
+          </div>
+        </template>
+          <template v-if="hasRole(['admin', 'admin2'])">
+          <div class="stat-card">
+            <div class="stat-icon completed-care">
+              <i class="el-icon-circle-check"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.completedCareCount || 0 }}</div>
+              <div class="stat-label">今日护理任务</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 用药任务统计（管理员/管理员2：查看今日全部） -->
+        <template v-if="hasRole(['caregiver'])">
+          <div class="stat-card">
+            <div class="stat-icon pending-medication">
+              <i class="el-icon-medicine-rack"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.pendingMedicationCount || 0 }}</div>
+              <div class="stat-label">今日待执行用药</div>
+            </div>
+          </div>
+        </template>
+        <template v-if="hasRole(['admin', 'admin2'])">
+          <div class="stat-card">
+            <div class="stat-icon completed-medication">
+              <i class="el-icon-check"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.completedMedicationCount || 0 }}</div>
+              <div class="stat-label">今日已完成用药</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 用药任务统计（护工：查看自己的） -->
+        <template v-if="hasRole(['caregiver'])">
           <div class="stat-card">
             <div class="stat-icon pending-medication">
               <i class="el-icon-medicine-rack"></i>
@@ -149,6 +163,8 @@
               <div class="stat-label">待执行用药</div>
             </div>
           </div>
+        </template>
+        <template v-if="hasRole(['admin', 'admin2'])">
           <div class="stat-card">
             <div class="stat-icon completed-medication">
               <i class="el-icon-check"></i>
@@ -161,7 +177,7 @@
         </template>
 
         <!-- 项目单统计 -->
-        <template v-if="hasRole(['doctor', 'admin'])">
+        <template v-if="hasRole(['doctor', 'admin', 'admin2'])">
           <div class="stat-card">
             <div class="stat-icon pending-order">
               <i class="el-icon-document-copy"></i>
@@ -187,7 +203,7 @@
         </template>
 
         <!-- 健康异常统计 -->
-        <template v-if="hasRole(['doctor', 'admin'])">
+        <template v-if="hasRole(['doctor', 'admin', 'admin2'])">
           <div class="stat-card">
             <div class="stat-icon abnormal">
               <i class="el-icon-warning"></i>
@@ -199,6 +215,94 @@
           </div>
         </template>
 
+        <!-- 超时和异常统计（管理员/管理员2：查看全部） -->
+        <template v-if="hasRole(['admin', 'admin2'])">
+          <div class="stat-card">
+            <div class="stat-icon timeout-care">
+              <i class="el-icon-time"></i>
+              <span v-if="statistics.timeoutCareCount > 0" class="stat-badge">{{ statistics.timeoutCareCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.timeoutCareCount || 0 }}</div>
+              <div class="stat-label">超时生活照料</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon abnormal-care">
+              <i class="el-icon-warning"></i>
+              <span v-if="statistics.abnormalCareCount > 0" class="stat-badge">{{ statistics.abnormalCareCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.abnormalCareCount || 0 }}</div>
+              <div class="stat-label">生活照料异常</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon timeout-med">
+              <i class="el-icon-time"></i>
+              <span v-if="statistics.timeoutMedicationCount > 0" class="stat-badge">{{ statistics.timeoutMedicationCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.timeoutMedicationCount || 0 }}</div>
+              <div class="stat-label">超时用药任务</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon abnormal-med">
+              <i class="el-icon-warning"></i>
+              <span v-if="statistics.abnormalMedicationCount > 0" class="stat-badge">{{ statistics.abnormalMedicationCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.abnormalMedicationCount || 0 }}</div>
+              <div class="stat-label">用药异常</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- 超时和异常统计（护工：查看自己的） -->
+        <template v-if="hasRole(['caregiver'])">
+          <div class="stat-card">
+            <div class="stat-icon timeout-care">
+              <i class="el-icon-time"></i>
+              <span v-if="statistics.timeoutCareCount > 0" class="stat-badge">{{ statistics.timeoutCareCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.timeoutCareCount || 0 }}</div>
+              <div class="stat-label">超时生活照料</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon abnormal-care">
+              <i class="el-icon-warning"></i>
+              <span v-if="statistics.abnormalCareCount > 0" class="stat-badge">{{ statistics.abnormalCareCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.abnormalCareCount || 0 }}</div>
+              <div class="stat-label">生活照料异常</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon timeout-med">
+              <i class="el-icon-time"></i>
+              <span v-if="statistics.timeoutMedicationCount > 0" class="stat-badge">{{ statistics.timeoutMedicationCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.timeoutMedicationCount || 0 }}</div>
+              <div class="stat-label">超时用药任务</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon abnormal-med">
+              <i class="el-icon-warning"></i>
+              <span v-if="statistics.abnormalMedicationCount > 0" class="stat-badge">{{ statistics.abnormalMedicationCount }}</span>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">{{ statistics.abnormalMedicationCount || 0 }}</div>
+              <div class="stat-label">用药异常</div>
+            </div>
+          </div>
+        </template>
+
         <!-- 留言统计 -->
         <div class="stat-card">
           <div class="stat-icon feedback">
@@ -206,13 +310,13 @@
             <span v-if="statistics.unreadFeedbackCount > 0" class="stat-badge">{{ statistics.unreadFeedbackCount }}</span>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ statistics.todayFeedbackCount || 0 }}</div>
-            <div class="stat-label">今日留言</div>
+            <div class="stat-value">{{ statistics.unreadFeedbackCount || 0 }}</div>
+            <div class="stat-label">未读留言</div>
           </div>
         </div>
 
         <!-- 床位统计 -->
-        <template v-if="hasRole(['admin'])">
+        <template v-if="hasRole(['admin', 'admin2'])">
           <div class="stat-card">
             <div class="stat-icon bed">
               <i class="el-icon-office-building"></i>
@@ -254,7 +358,7 @@
 </template>
 
 <script>
-import { getStatistics, getTodoList, getAiAssistantData } from '@/api/dashboard/dashboard'
+import { getStatistics, getAiAssistantData } from '@/api/dashboard/dashboard'
 import { mapGetters } from 'vuex'
 import path from 'path'
 
@@ -264,8 +368,6 @@ export default {
     return {
       // 统计数据
       statistics: {},
-      // 待办列表
-      todoList: [],
       // AI助手数据
       aiData: {
         welcomeMessage: '',
@@ -306,11 +408,6 @@ export default {
       // 获取统计数据
       getStatistics().then(response => {
         this.statistics = response.data || {}
-      })
-
-      // 获取待办列表
-      getTodoList().then(response => {
-        this.todoList = response.data || []
       })
 
       // 获取AI助手数据
@@ -495,10 +592,12 @@ export default {
     // 获取建议图标
     getSuggestionIcon(type) {
       const iconMap = {
-        task: 'el-icon-first-aid-kit',
-        health: 'el-icon-warning',
-        medical: 'el-icon-document',
+        warning: 'el-icon-circle-close',
+        task: 'el-icon-s-order',
+        review: 'el-icon-document-checked',
         handover: 'el-icon-refresh',
+        health: 'el-icon-first-aid-kit',
+        message: 'el-icon-chat-dot-round',
         system: 'el-icon-monitor',
         general: 'el-icon-info'
       }
@@ -542,22 +641,11 @@ export default {
       try {
         this.routeLoading = true
         
-        // 根据建议类型跳转到对应页面
-        const moduleKeyMap = {
-          task: 'careRecord',
-          health: 'record',
-          medical: 'medicalOrder',
-          handover: 'handover',
-          system: 'elderly',
-          general: 'index'
-        }
-        
-        const moduleKey = moduleKeyMap[suggestion.type]
-        console.log(`智能助手建议点击 - 类型: ${suggestion.type}, 模块Key: ${moduleKey}`)
+        // 优先使用 routeKey 字段
+        const moduleKey = suggestion.routeKey
         
         if (moduleKey) {
           if (moduleKey === 'index') {
-            console.log(`实际跳转URL: /index`)
             this.$router.push('/index')
           } else {
             // 从真实路由中查找路径（包括完整的层级路径）
@@ -565,9 +653,6 @@ export default {
             const routeInfo = this.findRouteWithFullPath(moduleKey, sidebarRoutes)
             if (routeInfo) {
               console.log(`找到路由: ${routeInfo.fullPath}`)
-              // 添加路由跳转动画提示
-              this.$message.success(`正在跳转到${suggestion.title}...`)
-              console.log(`实际跳转URL: ${routeInfo.fullPath}`)
               this.$router.push(routeInfo.fullPath)
             } else {
               this.$message.warning('该功能暂未开放或您没有权限访问')
@@ -801,10 +886,12 @@ export default {
           color: white;
         }
 
-        &.task { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        &.health { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        &.medical { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        &.warning { background: linear-gradient(135deg, #f56c6c 0%, #e6a23c 100%); }
+        &.task { background: linear-gradient(135deg, #409eff 0%, #667eea 100%); }
+        &.review { background: linear-gradient(135deg, #67c23a 0%, #43e97b 100%); }
         &.handover { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        &.health { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        &.message { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         &.system { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
         &.general { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
       }
@@ -1032,6 +1119,10 @@ export default {
         &.abnormal { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); i { color: #f56c6c; } }
         &.feedback { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         &.bed { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        &.timeout-care { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); }
+        &.abnormal-care { background: linear-gradient(135deg, #e6a23c 0%, #f5af19 100%); }
+        &.timeout-med { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        &.abnormal-med { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
       }
 
       .stat-info {

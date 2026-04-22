@@ -39,12 +39,14 @@ public class DashboardServiceImpl implements IDashboardService {
         boolean isCaregiver = false;
         boolean isDoctor = false;
         boolean isAdmin = false;
+        boolean isAdmin2 = false;
         
         try {
             userId = SecurityUtils.getUserId();
             isCaregiver = SecurityUtils.hasRole("caregiver");
             isDoctor = SecurityUtils.hasRole("doctor");
             isAdmin = SecurityUtils.hasRole("admin");
+            isAdmin2 = SecurityUtils.hasRole("admin2");
         } catch (Exception e) {
             // 用户未登录或权限信息不完整，使用默认值
         }
@@ -53,26 +55,34 @@ public class DashboardServiceImpl implements IDashboardService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String today = sdf.format(new Date());
         
-        // 老人统计（管理员和医生可见）
-        if (isAdmin || isDoctor) {
+        // 老人统计（管理员、管理员2、医生、护工可见）
+        if (isAdmin || isAdmin2 || isDoctor || isCaregiver) {
             statistics.setElderlyCount(dashboardMapper.selectElderlyCount());
             statistics.setTodayElderlyCount(dashboardMapper.selectTodayElderlyCount(today));
         }
         
-        // 护理任务统计（护工、医生、管理员可见）
-        if (isCaregiver || isDoctor || isAdmin) {
-            statistics.setPendingCareCount(dashboardMapper.selectPendingCareCount(userId, isCaregiver));
-            statistics.setCompletedCareCount(dashboardMapper.selectCompletedCareCount(today, userId, isCaregiver));
+        // 护理任务统计（护工看自己的，管理员/管理员2看全部）
+        if (isCaregiver) {
+            statistics.setPendingCareCount(dashboardMapper.selectPendingCareCount(userId, true));
+            statistics.setCompletedCareCount(dashboardMapper.selectCompletedCareCount(today, userId, true));
+        }
+        if (isAdmin || isAdmin2) {
+            statistics.setPendingCareCount(dashboardMapper.selectTodayAllPendingCareCount(today));
+            statistics.setCompletedCareCount(dashboardMapper.selectTodayAllCompletedCareCount(today));
         }
         
-        // 用药任务统计（护工、医生、管理员可见）
-        if (isCaregiver || isDoctor || isAdmin) {
-            statistics.setPendingMedicationCount(dashboardMapper.selectPendingMedicationCount(userId, isCaregiver));
-            statistics.setCompletedMedicationCount(dashboardMapper.selectCompletedMedicationCount(today, userId, isCaregiver));
+        // 用药任务统计（护工看自己的，管理员/管理员2看全部）
+        if (isCaregiver) {
+            statistics.setPendingMedicationCount(dashboardMapper.selectPendingMedicationCount(userId, true));
+            statistics.setCompletedMedicationCount(dashboardMapper.selectCompletedMedicationCount(today, userId, true));
+        }
+        if (isAdmin || isAdmin2) {
+            statistics.setPendingMedicationCount(dashboardMapper.selectTodayAllPendingMedicationCount(today));
+            statistics.setCompletedMedicationCount(dashboardMapper.selectTodayAllCompletedMedicationCount(today));
         }
         
-        // 项目单审核统计（医生、管理员可见）
-        if (isDoctor || isAdmin) {
+        // 项目单审核统计（医生、管理员、管理员2可见）
+        if (isDoctor || isAdmin || isAdmin2) {
             statistics.setPendingProjectOrderCount(dashboardMapper.selectPendingProjectOrderCount());
         }
         
@@ -81,17 +91,16 @@ public class DashboardServiceImpl implements IDashboardService {
             statistics.setPendingHandoverCount(dashboardMapper.selectPendingHandoverCount(userId));
         }
         
-        // 健康记录统计（医生、管理员可见）
-        if (isDoctor || isAdmin) {
+        // 健康记录统计（医生、管理员、管理员2可见）
+        if (isDoctor || isAdmin || isAdmin2) {
             statistics.setAbnormalHealthCount(dashboardMapper.selectAbnormalHealthCount());
         }
         
         // 留言统计（所有用户）
         statistics.setTodayFeedbackCount(dashboardMapper.selectTodayFeedbackCount(today));
         statistics.setUnreadFeedbackCount(dashboardMapper.selectUnreadFeedbackCount(userId));
-        
-        // 床位统计（管理员可见）
-        if (isAdmin) {
+        // 床位统计（管理员、管理员2可见）
+        if (isAdmin || isAdmin2) {
             Long totalBeds = dashboardMapper.selectTotalBedCount();
             Long freeBeds = dashboardMapper.selectFreeBedCount();
             statistics.setTotalBedCount(totalBeds);
@@ -99,6 +108,20 @@ public class DashboardServiceImpl implements IDashboardService {
             if (totalBeds > 0) {
                 statistics.setBedUsageRate((double) (totalBeds - freeBeds) / totalBeds * 100);
             }
+        }
+        
+        // 超时和异常统计（护工看自己的，管理员/管理员2看全部）
+        if (isCaregiver) {
+            statistics.setTimeoutCareCount(dashboardMapper.selectTimeoutCareCount(userId, true));
+            statistics.setAbnormalCareCount(dashboardMapper.selectAbnormalCareCount(userId, true));
+            statistics.setTimeoutMedicationCount(dashboardMapper.selectTimeoutMedicationCount(userId, true));
+            statistics.setAbnormalMedicationCount(dashboardMapper.selectAbnormalMedicationCount(userId, true));
+        }
+        if (isAdmin || isAdmin2) {
+            statistics.setTimeoutCareCount(dashboardMapper.selectAllTimeoutCareCount());
+            statistics.setAbnormalCareCount(dashboardMapper.selectAllAbnormalCareCount());
+            statistics.setTimeoutMedicationCount(dashboardMapper.selectAllTimeoutMedicationCount());
+            statistics.setAbnormalMedicationCount(dashboardMapper.selectAllAbnormalMedicationCount());
         }
         
         return statistics;
@@ -196,17 +219,21 @@ public class DashboardServiceImpl implements IDashboardService {
         AiAssistantData aiData = new AiAssistantData();
         
         // 获取当前用户信息
+        Long userId = null;
         String userName = "用户";
         boolean isCaregiver = false;
         boolean isDoctor = false;
         boolean isAdmin = false;
+        boolean isAdmin2 = false;
         
         try {
             SysUser user = SecurityUtils.getLoginUser().getUser();
             userName = user.getNickName() != null ? user.getNickName() : user.getUserName();
+            userId = SecurityUtils.getUserId();
             isCaregiver = SecurityUtils.hasRole("caregiver");
             isDoctor = SecurityUtils.hasRole("doctor");
             isAdmin = SecurityUtils.hasRole("admin");
+            isAdmin2 = SecurityUtils.hasRole("admin2");
         } catch (Exception e) {
             // 用户未登录或权限信息不完整，使用默认值
         }
@@ -233,63 +260,187 @@ public class DashboardServiceImpl implements IDashboardService {
             greeting = "晚上好";
         }
         
-        aiData.setWelcomeMessage(greeting + "，" + userName + "！我是您的智能助手，很高兴为您服务。");
+        aiData.setWelcomeMessage(greeting + "，" + userName + "！我是您的工作助手，很高兴为您服务。");
         
-        // 设置AI建议列表（模拟数据，后续可对接Dify）
+        // 获取统计数据，动态生成建议
         List<AiAssistantData.AiSuggestion> suggestions = new ArrayList<>();
+        String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         
-        if (isCaregiver) {
-            AiAssistantData.AiSuggestion suggestion1 = new AiAssistantData.AiSuggestion();
-            suggestion1.setType("task");
-            suggestion1.setTitle("今日护理任务提醒");
-            suggestion1.setContent("建议您优先处理高优先级的护理任务，确保老人得到及时照料。");
-            suggestion1.setAction("查看任务");
-            suggestions.add(suggestion1);
-            
-            AiAssistantData.AiSuggestion suggestion2 = new AiAssistantData.AiSuggestion();
-            suggestion2.setType("health");
-            suggestion2.setTitle("老人健康关注");
-            suggestion2.setContent("近期有老人健康指标异常，请特别关注血压和血糖数据。");
-            suggestion2.setAction("查看健康档案");
-            suggestions.add(suggestion2);
-        }
-        
-        if (isDoctor) {
-            AiAssistantData.AiSuggestion suggestion3 = new AiAssistantData.AiSuggestion();
-            suggestion3.setType("medical");
-            suggestion3.setTitle("医嘱审核提醒");
-            suggestion3.setContent("有新的医嘱需要您审核，请及时处理。");
-            suggestion3.setAction("审核医嘱");
-            suggestions.add(suggestion3);
-            
-            AiAssistantData.AiSuggestion suggestion4 = new AiAssistantData.AiSuggestion();
-            suggestion4.setType("handover");
-            suggestion4.setTitle("交班事项");
-            suggestion4.setContent("请查看待处理的交班记录，了解前一班次的情况。");
-            suggestion4.setAction("查看交班");
-            suggestions.add(suggestion4);
-        }
-        
-        if (isAdmin) {
-            AiAssistantData.AiSuggestion suggestion5 = new AiAssistantData.AiSuggestion();
-            suggestion5.setType("system");
-            suggestion5.setTitle("系统运行状态");
-            try {
-                suggestion5.setContent("系统运行正常，今日新增" + dashboardMapper.selectTodayElderlyCount(new SimpleDateFormat("yyyy-MM-dd").format(new Date())) + "位老人入住。");
-            } catch (Exception e) {
-                suggestion5.setContent("系统运行正常");
+        // 护理任务超时建议（护工、管理员）
+        if (isCaregiver || isAdmin || isAdmin2) {
+            Long timeoutCare = isCaregiver ? dashboardMapper.selectTimeoutCareCount(userId, true) : dashboardMapper.selectAllTimeoutCareCount();
+            if (timeoutCare != null && timeoutCare > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("warning");
+                suggestion.setTitle("生活照料超时提醒");
+                suggestion.setContent("您有" + timeoutCare + "个生活照料任务已超时，请尽快处理！");
+                suggestion.setAction("查看生活照料");
+                suggestion.setRouteKey("careRecord");
+                suggestions.add(suggestion);
             }
-            suggestion5.setAction("查看详情");
-            suggestions.add(suggestion5);
         }
         
-        // 通用建议
-        AiAssistantData.AiSuggestion suggestion6 = new AiAssistantData.AiSuggestion();
-        suggestion6.setType("general");
-        suggestion6.setTitle("工作建议");
-        suggestion6.setContent("保持良好的工作状态，及时记录工作日志，有助于提高工作效率。");
-        suggestion6.setAction("了解更多");
-        suggestions.add(suggestion6);
+        // 用药任务超时建议（护工、管理员）
+        if (isCaregiver || isAdmin || isAdmin2) {
+            Long timeoutMed = isCaregiver ? dashboardMapper.selectTimeoutMedicationCount(userId, true) : dashboardMapper.selectAllTimeoutMedicationCount();
+            if (timeoutMed != null && timeoutMed > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("warning");
+                suggestion.setTitle("用药任务超时提醒");
+                suggestion.setContent("您有" + timeoutMed + "个用药任务已超时，请立即处理！");
+                suggestion.setAction("查看用药跟踪");
+                suggestion.setRouteKey("medicationRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 待执行护理任务建议（护工）
+        if (isCaregiver) {
+            Long pendingCare = dashboardMapper.selectPendingCareCount(userId, true);
+            if (pendingCare != null && pendingCare > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("task");
+                suggestion.setTitle("今日待执行护理");
+                suggestion.setContent("您有" + pendingCare + "个护理任务待执行，请及时完成。");
+                suggestion.setAction("查看任务");
+                suggestion.setRouteKey("careRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 管理员今日全部待执行任务
+        if (isAdmin || isAdmin2) {
+            Long allPendingCare = dashboardMapper.selectTodayAllPendingCareCount(today);
+            if (allPendingCare != null && allPendingCare > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("task");
+                suggestion.setTitle("今日待执行护理");
+                suggestion.setContent("今日共有" + allPendingCare + "个护理任务待执行，请关注任务进度。");
+                suggestion.setAction("查看任务");
+                suggestion.setRouteKey("careRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 待执行用药任务建议（护工）
+        if (isCaregiver) {
+            Long pendingMed = dashboardMapper.selectPendingMedicationCount(userId, true);
+            if (pendingMed != null && pendingMed > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("task");
+                suggestion.setTitle("今日待执行用药");
+                suggestion.setContent("您有" + pendingMed + "个用药任务待执行，请按时完成。");
+                suggestion.setAction("查看任务");
+                suggestion.setRouteKey("medicationRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 管理员今日全部待执行用药
+        if (isAdmin || isAdmin2) {
+            Long allPendingMed = dashboardMapper.selectTodayAllPendingMedicationCount(today);
+            if (allPendingMed != null && allPendingMed > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("task");
+                suggestion.setTitle("今日待执行用药");
+                suggestion.setContent("今日共有" + allPendingMed + "个用药任务待执行，请督促护工完成。");
+                suggestion.setAction("查看任务");
+                suggestion.setRouteKey("medicationRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 生活照料异常建议（护工、管理员）
+        if (isCaregiver || isAdmin || isAdmin2) {
+            Long abnormalCare = isCaregiver ? dashboardMapper.selectAbnormalCareCount(userId, true) : dashboardMapper.selectAllAbnormalCareCount();
+            if (abnormalCare != null && abnormalCare > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("warning");
+                suggestion.setTitle("生活照料异常");
+                suggestion.setContent("有" + abnormalCare + "个生活照料任务记录为异常状态，请核实处理。");
+                suggestion.setAction("查看详情");
+                suggestion.setRouteKey("careRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 用药异常建议（护工、管理员）
+        if (isCaregiver || isAdmin || isAdmin2) {
+            Long abnormalMed = isCaregiver ? dashboardMapper.selectAbnormalMedicationCount(userId, true) : dashboardMapper.selectAllAbnormalMedicationCount();
+            if (abnormalMed != null && abnormalMed > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("warning");
+                suggestion.setTitle("用药异常");
+                suggestion.setContent("有" + abnormalMed + "个用药任务记录为异常状态，请核实处理。");
+                suggestion.setAction("查看详情");
+                suggestion.setRouteKey("medicationRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 待审核项目单（医生、管理员）
+        if (isDoctor || isAdmin || isAdmin2) {
+            Long pendingOrders = dashboardMapper.selectPendingProjectOrderCount();
+            if (pendingOrders != null && pendingOrders > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("review");
+                suggestion.setTitle("项目单待审核");
+                suggestion.setContent("有" + pendingOrders + "个项目单等待审核，请及时处理。");
+                suggestion.setAction("审核项目单");
+                suggestion.setRouteKey("projectOrder");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 待交班记录（医生）
+        if (isDoctor) {
+            Long pendingHandover = dashboardMapper.selectPendingHandoverCount(userId);
+            if (pendingHandover != null && pendingHandover > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("handover");
+                suggestion.setTitle("交班提醒");
+                suggestion.setContent("您有" + pendingHandover + "个交班记录待处理，请及时完成交班。");
+                suggestion.setAction("查看交班");
+                suggestion.setRouteKey("handover");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 异常健康记录（医生、管理员）
+        if (isDoctor || isAdmin || isAdmin2) {
+            Long abnormalHealth = dashboardMapper.selectAbnormalHealthCount();
+            if (abnormalHealth != null && abnormalHealth > 0) {
+                AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+                suggestion.setType("health");
+                suggestion.setTitle("异常健康记录");
+                suggestion.setContent("有" + abnormalHealth + "条异常健康记录，请关注老人健康状况。");
+                suggestion.setAction("查看健康档案");
+                suggestion.setRouteKey("healthRecord");
+                suggestions.add(suggestion);
+            }
+        }
+        
+        // 未读留言
+        Long unreadFeedback = dashboardMapper.selectUnreadFeedbackCount(userId);
+        if (unreadFeedback != null && unreadFeedback > 0) {
+            AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+            suggestion.setType("message");
+            suggestion.setTitle("未读留言");
+            suggestion.setContent("您有" + unreadFeedback + "条未读留言，请查看。");
+            suggestion.setAction("查看留言");
+            suggestion.setRouteKey("feedback");
+            suggestions.add(suggestion);
+        }
+        
+        // 如果没有任何建议，显示默认建议
+        if (suggestions.isEmpty()) {
+            AiAssistantData.AiSuggestion suggestion = new AiAssistantData.AiSuggestion();
+            suggestion.setType("general");
+            suggestion.setTitle("工作正常");
+            suggestion.setContent("当前所有任务均在正常进行中，继续加油！");
+            suggestion.setAction("了解更多");
+            suggestions.add(suggestion);
+        }
         
         aiData.setSuggestions(suggestions);
         

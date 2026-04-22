@@ -7,26 +7,29 @@ ruoyi:
   # 版权年份
   copyrightYear: 2025
   # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  profile: C:/ruoyi/uploadPath
+#  profile: C:/ruoyi/uploadPath
+  profile: /home/ruoyi/uploadPath
   # 获取ip地址开关
   addressEnabled: false
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
 # Dify AI 配置
 #阿里云dify
+dify:
+  api:
+    # Dify API 地址
+#    url: http://your-dify-host/v1
+    # Dify API 地址
+    url: http://127.0.0.1:3000/v1
+    # Dify API Key
+    key: your-dify-api-key
+#本地dify
 #dify:
 #  api:
 #    # Dify API 地址
 #    url: http://your-dify-host/v1
 #    # Dify API Key
 #    key: your-dify-api-key
-#本地dify
-dify:
-  api:
-    # Dify API 地址
-    url: http://your-dify-host/v1
-    # Dify API Key
-    key: your-dify-api-key
 
 # 开发环境配置
 server:

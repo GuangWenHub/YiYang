@@ -6,6 +6,7 @@ import com.yiyang.ai.domain.SysChatHistory;
 import com.yiyang.ai.mapper.SysChatSessionMapper;
 import com.yiyang.ai.mapper.SysChatHistoryMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yiyang.common.core.domain.model.LoginUser;
 import com.yiyang.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +50,7 @@ public class AiServiceImpl implements IAiService {
     }
 
     @Override
-    public void sendChatMessage(String prompt, String chatId, String userRole, String userName, HttpServletResponse response) throws IOException {
+    public void sendChatMessage(String prompt, String chatId, String userRole, String userName, String jwtToken, HttpServletResponse response) throws IOException {
         System.out.println("========================================");
         System.out.println("3. 开始处理聊天消息，prompt: " + prompt + ", chatId: " + chatId);
         System.out.println("3.1 用户角色：" + userRole + ", 用户名：" + userName);
@@ -57,6 +58,7 @@ public class AiServiceImpl implements IAiService {
         // 获取当前登录用户 ID
         Long userId = SecurityUtils.getUserId();
         System.out.println("3.2 当前登录用户 ID: " + userId);
+        System.out.println("3.3 当前用户 JWT Token: " + jwtToken);
         
         // 设置响应头
         response.setContentType("text/event-stream;charset=UTF-8");
@@ -86,6 +88,11 @@ public class AiServiceImpl implements IAiService {
         }
         if (userName != null && !userName.isEmpty()) {
             inputs.put("user_name", userName);
+        }
+        
+        // 将用户 JWT token 传递给 Dify，以便 Dify 调用后端接口时使用认证
+        if (jwtToken != null && !jwtToken.isEmpty()) {
+            inputs.put("user_token", jwtToken);
         }
         
         requestBody.put("inputs", inputs);

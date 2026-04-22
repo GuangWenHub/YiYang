@@ -13,7 +13,7 @@ public interface IAiService {
     /**
      * 发送聊天消息
      */
-    void sendChatMessage(String prompt, String chatId, String userRole, String userName, HttpServletResponse response) throws IOException;
+    void sendChatMessage(String prompt, String chatId, String userRole, String userName, String jwtToken, HttpServletResponse response) throws IOException;
 
     /**
      * 获取聊天历史列表

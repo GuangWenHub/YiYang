@@ -288,7 +288,7 @@ export default {
     getList() {
       this.loading = true
       listDetail(this.queryParams).then(response => {
-        this.detailList = response.rows
+        this.detailList = response.rows.reverse()
         this.total = response.total
         // 检查是否有超时任务
         this.checkTimeoutTasks()

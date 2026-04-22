@@ -409,7 +409,7 @@ export default {
     getList() {
       this.loading = true
       listMedicalOrder(this.queryParams).then(response => {
-        this.medicalOrderList = response.rows
+        this.medicalOrderList = response.rows.reverse()
         this.total = response.total
         this.loading = false
       })

@@ -344,7 +344,7 @@ export default {
     getList() {
       this.loading = true
       listCareRecord(this.queryParams).then(response => {
-        this.careRecordList = response.rows
+        this.careRecordList = response.rows.reverse()
         this.total = response.total
         // 检查是否有超时任务
         this.checkTimeoutTasks()

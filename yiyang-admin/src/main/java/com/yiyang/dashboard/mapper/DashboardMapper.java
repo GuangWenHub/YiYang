@@ -32,6 +32,16 @@ public interface DashboardMapper {
     Long selectCompletedCareCount(@Param("today") String today, @Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
 
     /**
+     * 获取今日所有待执行护理任务数（管理员查看所有）
+     */
+    Long selectTodayAllPendingCareCount(@Param("today") String today);
+
+    /**
+     * 获取今日所有已完成护理任务数（管理员查看所有）
+     */
+    Long selectTodayAllCompletedCareCount(@Param("today") String today);
+
+    /**
      * 获取待执行用药任务数
      */
     Long selectPendingMedicationCount(@Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
@@ -40,6 +50,16 @@ public interface DashboardMapper {
      * 获取今日已完成用药任务数
      */
     Long selectCompletedMedicationCount(@Param("today") String today, @Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
+
+    /**
+     * 获取今日所有待执行用药任务数（管理员查看所有）
+     */
+    Long selectTodayAllPendingMedicationCount(@Param("today") String today);
+
+    /**
+     * 获取今日所有已完成用药任务数（管理员查看所有）
+     */
+    Long selectTodayAllCompletedMedicationCount(@Param("today") String today);
 
     /**
      * 获取待审核项目单数
@@ -75,4 +95,44 @@ public interface DashboardMapper {
      * 获取空闲床位数
      */
     Long selectFreeBedCount();
+
+    /**
+     * 获取超时的生活照料任务数
+     */
+    Long selectTimeoutCareCount(@Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
+
+    /**
+     * 获取生活照料异常记录数
+     */
+    Long selectAbnormalCareCount(@Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
+
+    /**
+     * 获取所有超时的生活照料任务数（管理员查看所有）
+     */
+    Long selectAllTimeoutCareCount();
+
+    /**
+     * 获取所有生活照料异常记录数（管理员查看所有）
+     */
+    Long selectAllAbnormalCareCount();
+
+    /**
+     * 获取超时的用药任务数
+     */
+    Long selectTimeoutMedicationCount(@Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
+
+    /**
+     * 获取用药异常记录数
+     */
+    Long selectAbnormalMedicationCount(@Param("userId") Long userId, @Param("isCaregiver") boolean isCaregiver);
+
+    /**
+     * 获取所有超时的用药任务数（管理员查看所有）
+     */
+    Long selectAllTimeoutMedicationCount();
+
+    /**
+     * 获取所有用药异常记录数（管理员查看所有）
+     */
+    Long selectAllAbnormalMedicationCount();
 }
