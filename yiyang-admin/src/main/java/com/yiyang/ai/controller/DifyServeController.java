@@ -1,5 +1,6 @@
 package com.yiyang.ai.controller;
 
+import com.yiyang.common.annotation.Anonymous;
 import com.yiyang.common.core.domain.AjaxResult;
 import org.springframework.security.access.prepost.PreAuthorize;
 import com.yiyang.elderly.domain.Elderly;
@@ -42,6 +43,7 @@ import java.util.Map;
  * @author GuangWenLi
  * @date 2026-04-13
  */
+@Anonymous
 @RestController
 @RequestMapping("/dify/serve")
 public class DifyServeController {
@@ -82,7 +84,7 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 老人信息
      */
-    @PreAuthorize("@ss.hasPermi('elderly:elderly:list')")
+//    @PreAuthorize("@ss.hasPermi('elderly:elderly:list')")
     @GetMapping("/elder")
     public AjaxResult getElder(Long elderlyId) {
         if (elderlyId == null) {
@@ -93,19 +95,34 @@ public class DifyServeController {
     }
 
     /**
-     * 查询房间信息
+     * 查询老人的房间和床位信息
      * 
-     * @param roomId 房间 ID
-     * @return 房间信息
+     * @param elderlyId 老人 ID
+     * @return 房间和床位信息
      */
-    @PreAuthorize("@ss.hasPermi('room:room:list')")
+//    @PreAuthorize("@ss.hasPermi('room:room:list')")
     @GetMapping("/room")
-    public AjaxResult getRoom(Long roomId) {
-        if (roomId == null) {
-            return AjaxResult.error("请提供房间 ID");
+    public AjaxResult getRoom(Long elderlyId) {
+        if (elderlyId == null) {
+            return AjaxResult.error("请提供老人 ID");
         }
-        Room room = roomService.selectRoomByRoomId(roomId);
-        return AjaxResult.success(room);
+        
+        // 通过老人ID查询床位信息
+        Bed bed = roomService.selectBedByElderlyId(elderlyId);
+        
+        if (bed == null) {
+            return AjaxResult.warn("该老人未分配床位");
+        }
+        
+        // 通过床位中的房间ID查询房间信息
+        Room room = roomService.selectRoomByRoomId(bed.getRoomId());
+        
+        // 组装返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("bed", bed);
+        result.put("room", room);
+        
+        return AjaxResult.success(result);
     }
 
     /**
@@ -114,7 +131,7 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 健康档案记录列表（只返回必要字段）
      */
-    @PreAuthorize("@ss.hasPermi('record:record:list')")
+//    @PreAuthorize("@ss.hasPermi('record:record:list')")
     @GetMapping("/record")
     public AjaxResult getHealthRecord(Long elderlyId) {
         if (elderlyId == null) {
@@ -149,7 +166,7 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 查房记录列表
      */
-    @PreAuthorize("@ss.hasPermi('round:round:list')")
+//    @PreAuthorize("@ss.hasPermi('round:round:list')")
     @GetMapping("/round")
     public AjaxResult getWardRound(Long elderlyId) {
         if (elderlyId == null) {
@@ -167,7 +184,7 @@ public class DifyServeController {
      * @param medicineId 药品 ID
      * @return 药品信息
      */
-    @PreAuthorize("@ss.hasPermi('medicine:medicine:list')")
+//    @PreAuthorize("@ss.hasPermi('medicine:medicine:list')")
     @GetMapping("/medicine")
     public AjaxResult getMedicine(Long medicineId) {
         if (medicineId == null) {
@@ -183,7 +200,7 @@ public class DifyServeController {
      * @param date 日期（yyyy-MM-dd 格式）
      * @return 交班记录列表
      */
-    @PreAuthorize("@ss.hasPermi('handover:handover:list')")
+//    @PreAuthorize("@ss.hasPermi('handover:handover:list')")
     @GetMapping("/handover")
     public AjaxResult getHandover(String date) {
         if (date == null || date.isEmpty()) {
@@ -203,7 +220,7 @@ public class DifyServeController {
      * @param orderId 项目单 ID
      * @return 项目单明细列表
      */
-    @PreAuthorize("@ss.hasPermi('detail:detail:list')")
+//    @PreAuthorize("@ss.hasPermi('detail:detail:list')")
     @GetMapping("/detail")
     public AjaxResult getDetail(Long orderId) {
         if (orderId == null) {
@@ -219,7 +236,7 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 用药记录列表
      */
-    @PreAuthorize("@ss.hasPermi('medicationRecord:medicationRecord:list')")
+//    @PreAuthorize("@ss.hasPermi('medicationRecord:medicationRecord:list')")
     @GetMapping("/medicationRecord")
     public AjaxResult getMedicationRecord(Long elderlyId) {
         if (elderlyId == null) {
@@ -253,7 +270,7 @@ public class DifyServeController {
      * @param elderlyId 老人 ID
      * @return 生活照料记录列表
      */
-    @PreAuthorize("@ss.hasPermi('ai:dify:careRecord')")
+//    @PreAuthorize("@ss.hasPermi('ai:dify:careRecord')")
     @GetMapping("/careRecord")
     public AjaxResult getCareRecord(Long elderlyId) {
         if (elderlyId == null) {
@@ -271,7 +288,7 @@ public class DifyServeController {
      * @param name 老人姓名（支持模糊查询）
      * @return 老人信息列表，包含老人ID及其他数据
      */
-    @PreAuthorize("@ss.hasPermi('elderly:elderly:list')")
+//    @PreAuthorize("@ss.hasPermi('elderly:elderly:list')")
     @GetMapping("/elder/search")
     public AjaxResult searchElderByName(String name) {
         if (name == null || name.isEmpty()) {

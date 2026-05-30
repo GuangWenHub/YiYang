@@ -98,18 +98,18 @@
           <dict-tag :options="dict.type.activity_type" :value="scope.row.careType"/>
         </template>
       </el-table-column>
-      <el-table-column label="照料内容" align="center" prop="careContent" />
-      <el-table-column label="计划照料时间" align="center" prop="careTime" width="180">
+      <el-table-column label="照料内容" align="center" prop="careContent" width="300" />
+      <el-table-column label="计划照料时间" align="center" prop="careTime" width="140">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.careTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="照料开始时间" align="center" prop="startTime" width="180">
+      <el-table-column label="照料开始时间" align="center" prop="startTime" width="140">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="照料结束时间" align="center" prop="approvedTime" width="180">
+      <el-table-column label="照料结束时间" align="center" prop="approvedTime" width="140">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.approvedTime, '{y}-{m}-{d}') }}</span>
         </template>

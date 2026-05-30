@@ -9,14 +9,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="orderId"    column="order_id"    />
         <result property="medicineId"    column="medicine_id"    />
         <result property="medicineName"    column="medicine_name"    />
+        <result property="orderContent"    column="order_content"    />
+        <result property="medicationAdvice"    column="medication_advice"    />
         <result property="scheduledTime"    column="scheduled_time"    />
         <result property="actualTime"    column="actual_time"    />
         <result property="nurseId"    column="nurse_id"    />
         <result property="imageUrl"    column="image_url"    />
         <result property="status"    column="status"    />
         <result property="remark"    column="remark"    />
-        <result property="orderContent"    column="order_content"    />
-        <result property="medicationAdvice"    column="medication_advice"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -25,17 +25,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectMedicationRecordVo">
-        select mr.record_id, mr.order_id, mr.medicine_id, m.medicine_name, mr.scheduled_time, mr.actual_time, mr.nurse_id, mr.image_url, mr.status, mr.remark, mo.order_content, mo.medication_advice, mr.create_by, mr.create_time, mr.update_by, mr.update_time, mr.del_flag
-        from medication_record mr
-        left join medicine m on mr.medicine_id = m.medicine_id
-        left join medical_order mo on mr.order_id = mo.order_id
+        select record_id, order_id, medicine_id, scheduled_time, actual_time, nurse_id, image_url, status, remark, create_by, create_time, update_by, update_time, del_flag from medication_record
     </sql>
 
     <select id="selectMedicationRecordList" parameterType="MedicationRecord" resultMap="MedicationRecordResult">
         <include refid="selectMedicationRecordVo"/>
         <where>  
-            <if test="scheduledTime != null "> and scheduled_time = #{scheduledTime}</if>
-            <if test="actualTime != null "> and actual_time = #{actualTime}</if>
+            <if test="orderId != null "> and order_id = #{orderId}</if>
+            <if test="medicineId != null "> and medicine_id = #{medicineId}</if>
             <if test="nurseId != null "> and nurse_id = #{nurseId}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
@@ -117,6 +114,6 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <select id="selectMedicationRecordByOrderId" parameterType="Long" resultMap="MedicationRecordResult">
         <include refid="selectMedicationRecordVo"/>
-        where mr.order_id = #{orderId}
+        where order_id = #{orderId}
     </select>
 </mapper>
