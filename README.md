@@ -200,4 +200,4 @@ npm run dev
 ## 说明
 
 - 配置文件中涉及数据库密码、Redis 密码、JWT 密钥、Dify API Key 等敏感信息均已替换为占位符，部署时请自行填写。
-- 本项目基于 RuoYi 框架（MIT License）二次开发，详见 [LICENSE](LICENSE)。
+- 本项目基于 RuoYi 框架（MIT License）二次开发。
