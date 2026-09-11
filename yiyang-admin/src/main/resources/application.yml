@@ -14,18 +14,12 @@ ruoyi:
   # 验证码类型 math 数字计算 char 字符验证
   captchaType: math
 # Dify AI 配置
-#阿里云dify
 dify:
   api:
+    # Dify API 地址
     url: http://your-dify-host/v1
+    # Dify API Key
     key: your-dify-api-key
-#本地dify
-#dify:
-#  api:
-#    # Dify API 地址
-#    url: http://your-dify-host/v1
-#    # Dify API Key
-#    key: your-dify-api-key
 
 # 开发环境配置
 server:
@@ -83,14 +77,12 @@ spring:
   redis:
     # 地址
     host: localhost
-#    host: your-server-ip
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 0
     # 密码
     password: your-redis-password
-   # password:
     # 连接超时时间
     timeout: 10s
     lettuce:
@@ -108,7 +100,7 @@ spring:
 token:
   # 令牌自定义标识
   header: Authorization
-  # 令牌密钥
+  # 令牌密钥（请替换为自己的随机字符串）
   secret: your-jwt-secret-key
   # 令牌有效期（默认30分钟）
   expireTime: 30
